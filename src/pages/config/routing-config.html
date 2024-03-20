@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Configuration</title>
+    <link rel="stylesheet" />
+    <link rel="stylesheet" href="../style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script defer src="routing-config.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <ul>
+                <li class="clickable" onclick="window.location='mode-config.html';">Mode</li>
+                <li class="clickable" onclick="window.location='network-config.html';">Network</li>
+                <li class="clickable" onclick="window.location='Serial-config.html';">Serial</li>
+                <li class="selected">Modbus routing</li>
+            </ul>
+        </div>
+
+        <div class="config-content">
+            <h2>Configure Modbus routing</h2>
+
+            <div class="button-container">
+                <a href="routing-config.html">
+                    <button disabled class="button next-button" id="next-button">Next</button>
+                </a>
+                <a href="#">
+                    <button class="button save-button" id="save-button">Save & exit</button>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Gateway Manager</title>
+    <link rel="stylesheet" />
+    <link rel="stylesheet" href="../style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="search-container">
+            <div class="table-header">
+                <div class="column" id="column-1">ID</div>
+                <div class="column" id="column-2">Name</div>
+                <div class="column" id="column-3">Model</div>
+                <div class="column" id="column-4">Mac Address</div>
+                <div class="column" id="column-5">IP/COM</div>
+                <div class="column" id="column-6">Status</div>
+            </div>
+            <div class="table-rows">
+                <div class="table-row">
+                    <div class="column" id="column-1">1</div>
+                    <div class="column" id="column-2">Device 1</div>
+                    <div class="column" id="column-3">Model 123</div>
+                    <div class="column" id="column-4">00:11:22:33:44:55</div>
+                    <div class="column" id="column-5">192.168.115.36</div>
+                    <div class="column" id="column-6">Locked</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-container">
+            <button id="search-button" class="button menu">Search</button>
+            <button id="configure-button" class="button menu" disabled>Configure</button>
+            <button id="help-button" class="button menu">Help</button>
+            <button id="diagnose-button" class="button menu">Diagnose</button>
+            <button id="settings-button" class="button menu">Settings</button>
+            <button id="exit-button" class="button menu">Exit</button>
+        </div>
+    </div>
+</body>
+
+</html>

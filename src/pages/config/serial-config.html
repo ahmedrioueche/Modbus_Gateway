@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Configuration</title>
+    <link rel="stylesheet" />
+    <link rel="stylesheet" href="../style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script defer src="serial-config.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <ul>
+                <li class="clickable" onclick="window.location='mode-config.html';">Mode</li>
+                <li class="clickable" onclick="window.location='network-config.html';">Network</li>
+                <li class="selected">Serial</li>
+                <li class="clickable" onclick="window.location='routing-config.html';">Modbus routing</li>
+            </ul>
+        </div>
+
+        <div class="config-content">
+            <h2>Configure Serial</h2>
+
+            <div class="input-list">
+                <div class="input-item">
+                    <label>Baudrate</label>
+                    <select id="select-baud" class="select-field">
+                        <option value="20">50</option>
+                        <option>75</option>
+                        <option>110</option>
+                        <option>134</option>
+                        <option>150</option>
+                        <option>300</option>
+                        <option>600</option>
+                        <option>1200</option>
+                        <option>1800</option>
+                        <option>2400</option>
+                        <option>4800</option>
+                        <option>7200</option>
+                        <option selected>9600</option>
+                        <option>19200</option>
+                        <option>38400</option>
+                        <option>53600</option>
+                    </select>
+                </div>
+                <div class="input-item">
+                    <label>Interface</label>
+                    <select id="select-interface" class="select-field">
+                        <option selected>RS232</option>
+                        <option>RS422</option>
+                        <option>RS485 2-wire</option>
+                        <option>RS485 4-wire</option>
+                    </select>
+                </div>
+                <div class="input-item">
+                    <label>Parity</label>
+                    <select id="select-parity" class="select-field">
+                        <option value="20">None</option>
+                    </select>
+                </div>
+                <div class="input-item">
+                    <label>FIFO</label>
+                    <select id="select-fifo" class="select-field">
+                        <option selected>Enabled</option>
+                        <option>Disabled</option>
+                    </select>
+                </div>
+                <div class="input-item">
+                    <label>Stop bit</label>
+                    <select id="select-stopbit" class="select-field">
+                        <option selected>1</option>
+                        <option>0</option>
+                    </select>
+                </div>
+                <div class="input-item">
+                    <label>Data bits</label>
+                    <select id="select-databits" class="select-field">
+                        <option selected disabled>8</option>
+                    </select>
+                </div>
+                <div class="input-item">
+                    <label>Flow control</label>
+                    <select id="select-control" class="select-field">
+                        <option selected disabled>None</option>
+                    </select>
+                </div>
+            </div>
+            <div class="button-container">
+                <a href="routing-config.html">
+                    <button class="button next-button" id="next-button">Next</button>
+                </a>
+                <a href="#">
+                    <button class="button save-button" id="save-button">Save & exit</button>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>

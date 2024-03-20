@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Search</title>
+    <link rel="stylesheet" />
+    <link rel="stylesheet" href="../style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script defer src="search-config.js"></script>
+</head>
+
+<body>
+    <div class="search-container">
+        <div class="search-items">
+            <div class="checkbox-list">
+                <div class="checkbox-list-item">
+                    <input type="radio" id="radio1" name="search-mode" class="radio-input">
+                    <label for="radio1" class="radio-label">BroadCast Search</label>
+                </div>
+                <div class="checkbox-list-item">
+                    <input type="radio" id="radio2" name="search-mode" class="radio-input">
+                    <label for="radio2" class="radio-label">Specific IP Search</label>
+                    <input type="text" class="input-box" placeholder="192.168.0.123">
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <a href="#">
+                <button class="button next-button" id="search-button">Search</button>
+            </a>
+            <a href="#">
+                <button class="button save-button" id="cancel-button">Cancel</button>
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

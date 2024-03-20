@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Configuration</title>
+    <link rel="stylesheet" />
+    <link rel="stylesheet" href="../style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script defer src="network-config.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <ul>
+                <li class="clickable" onclick="window.location='mode-config.html';">Mode</li>
+                <li class="selected">Network</li>
+                <li class="clickable" onclick="window.location='serial-config.html';">Serial</li>
+                <li class="clickable" onclick="window.location='routing-config.html';">Modbus routing</li>
+            </ul>
+        </div>
+
+        <div class="config-content">
+            <h2>Configure Network</h2>
+
+            <div class="input-list">
+                <div class="input-item">
+                    <label class="input-label" for="input1">Name</label>
+                    <input type="text" id="input1" class="input-field">
+                </div>
+
+                <div class="input-item">
+                    <label class="input-label" for="input2">Network</label>
+                    <input type="text" id="input2" class="input-field">
+                </div>
+
+                <div class="input-item">
+                    <label class="input-label" for="input3">IP address</label>
+                    <input type="text" id="input3" class="input-field">
+                </div>
+
+                <div class="input-item">
+                    <label class="input-label" for="input3">Netmask</label>
+                    <input type="text" id="input3" class="input-field">
+                </div>
+
+                <div class="input-item">
+                    <label class="input-label" for="input3">Gateway</label>
+                    <input type="text" id="input3" class="input-field">
+                </div>
+
+                <div class="input-item">
+                    <label class="input-label" for="input3">DNS</label>
+                    <input type="text" id="input3" class="input-field">
+                </div>
+            </div>
+            <div class="button-container">
+                <a href="serial-config.html">
+                    <button class="button next-button" id="next-button">Next</button>
+                </a>
+                <a href="#">
+                    <button class="button save-button" id="save-button">Save & exit</button>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

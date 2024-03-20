@@ -1,0 +1,70 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  margin: auto;
+  max-width: 38rem;
+  padding: 2rem;
+}
+
+:root {
+  --mainColor: rgba(0, 0, 0, 0.9);
+  --sideColor: rgba(0, 110, 255, 0.995);
+  --clickColor: rgb(0, 34, 255);
+}
+
+.login-form,
+title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  justify-items: center;
+  flex-direction: column;
+  border-right: 10px;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  max-width: 400px;
+  margin: 13% auto;
+}
+
+.input-box {
+  height: 3vh;
+  width: 90%;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid var(--mainColor);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.input-box:focus {
+  outline: none;
+  border-color: var(--sideColor);
+  box-shadow: 0 0 6px var(--sideColor);
+}
+
+.button {
+  height: 5vh;
+  width: 30%;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-radius: 5px;
+  border: none;
+  background-color: var(--mainColor);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: var(--sideColor);
+}
+
+.button:active {
+  background-color: var(--clickColor);
+  box-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
+}
