@@ -19,9 +19,13 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@serialport/parser-readline": "^12.0.0",
     "bulma": "^0.9.4",
+    "electromon": "^1.0.10",
     "electron-squirrel-startup": "^1.0.0",
-    "electron-store": "^8.1.0"
+    "electron-store": "^8.1.0",
+    "serialport": "^12.0.0",
+    "virtual-serialport": "^4.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.23.5",

@@ -12,6 +12,11 @@ contextBridge.exposeInMainWorld('mainAPI', {
   closeSettingsWindow: () => ipcRenderer.send('closeSettingsWindow'),
 });
 
+contextBridge.exposeInMainWorld('serialAPI', {
+  getConfigData: (configBuffer) => {
+      ipcRenderer.send('getConfigData', configBuffer);
+  }
+});
 
 contextBridge.exposeInMainWorld('settingsAPI', {
   requestVariable: () => {

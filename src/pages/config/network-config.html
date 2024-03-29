@@ -14,10 +14,9 @@
     <div class="container">
         <div class="sidebar">
             <ul>
-                <li class="clickable" onclick="window.location='mode-config.html';">Mode</li>
+                <li class="clickable">Mode</li>
+                <li class="clickable">Serial</li>
                 <li class="selected">Network</li>
-                <li class="clickable" onclick="window.location='serial-config.html';">Serial</li>
-                <li class="clickable" onclick="window.location='routing-config.html';">Modbus routing</li>
             </ul>
         </div>
 
@@ -26,41 +25,27 @@
 
             <div class="input-list">
                 <div class="input-item">
-                    <label class="input-label" for="input1">Name</label>
-                    <input type="text" id="input1" class="input-field">
+                    <label class="input-label" for="input1">IP address</label>
+                    <input type="text" id="input1" class="input-field" placeholder="example:192.168.1.5">
                 </div>
 
                 <div class="input-item">
-                    <label class="input-label" for="input2">Network</label>
-                    <input type="text" id="input2" class="input-field">
-                </div>
-
-                <div class="input-item">
-                    <label class="input-label" for="input3">IP address</label>
-                    <input type="text" id="input3" class="input-field">
-                </div>
-
-                <div class="input-item">
-                    <label class="input-label" for="input3">Netmask</label>
-                    <input type="text" id="input3" class="input-field">
+                    <label class="input-label" for="input2">Netmask</label>
+                    <input type="text" id="input2" class="input-field" placeholder="example:255.255.255.0">
                 </div>
 
                 <div class="input-item">
                     <label class="input-label" for="input3">Gateway</label>
-                    <input type="text" id="input3" class="input-field">
+                    <input type="text" id="input3" class="input-field" placeholder="example:192.168.1.1">
                 </div>
 
-                <div class="input-item">
-                    <label class="input-label" for="input3">DNS</label>
-                    <input type="text" id="input3" class="input-field">
-                </div>
             </div>
             <div class="button-container">
-                <a href="serial-config.html">
-                    <button class="button next-button" id="next-button">Next</button>
-                </a>
                 <a href="#">
-                    <button class="button save-button" id="save-button">Save & exit</button>
+                    <button class="button left-button" id="save-button">save & exit</button>
+                </a>
+                <a href="serial-config.html">
+                    <button class="button right-button" id="previous-button">Previous</button>
                 </a>
             </div>
         </div>

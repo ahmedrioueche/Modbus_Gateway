@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
+const { getConfigData } = require('./serial.js');
 
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -14,7 +15,7 @@ const createMainWindow = () => {
   if (isPasswordSet)
     startPage = 'index.html';
   else
-    startPage = 'pages/main/main.html';
+    startPage = path.join(__dirname, 'src', 'pages', 'main', 'main.html');
   createWindow(mainWindow, mainWidth, mainHeight, startPage, false);
 };
 
@@ -127,7 +128,7 @@ function createWindow(window, width, height, htmlFile, resizable) {
 
     window.loadFile(path.join(__dirname, htmlFile));
 
-    //window.webContents.openDevTools();
+    window.webContents.openDevTools();
 
     window.on('will-resize', () => {
       resizeHandler(window, width, height, resizable);
@@ -184,3 +185,10 @@ function closeWindow(window) {
 function resizeWindow(window) {
   window.setSize(sideWidth, window.getBounds().height - 25, true);
 }
+
+
+ipcMain.on('getConfigData', (event, configBuffer) => {
+  getConfigData(configBuffer);
+});
+
+

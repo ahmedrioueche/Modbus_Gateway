@@ -4,10 +4,16 @@
     box-sizing: border-box;
 }
 
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('src/assets/fonts/OpenSans-Medium.ttf') format('truetype');
+}
+  
 body {
+    font-family: 'Open Sans', 'sans-serif';
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
     background-color: white;
     border-radius: 20px;
 }
@@ -16,6 +22,7 @@ body {
     --mainColor: rgba(0, 0, 0, 0.9);
     --sideColor: rgba(0, 110, 255, 0.995);
     --clickColor: rgb(0, 34, 255);
+    --dangerColor: rgba(248, 65, 65, 0.991);
 }
 
 .container {
@@ -35,6 +42,9 @@ body {
     text-align: center;
     max-width: 400px;
     width: 100%;
+    border: none;
+    box-shadow: none;
+    margin-left: 20px;
 }
 
 .config-content {
@@ -223,6 +233,19 @@ input {
 .button-container {
     display: flex;
     flex-direction: row;
+    margin-top: 0;
+}
+
+.button-container.settings {
+    margin-left: 10px;
+    margin-top: -30px;
+}
+.button-container.settings .left-button.settings-button {
+    margin-left: 30px; 
+}
+
+.button-container.settings .right-button.settings-button {
+    margin-left: -40px; 
 }
 
 .button {
@@ -253,10 +276,17 @@ input {
     box-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
 }
 
-.button.next-button {}
+.button.left-button {
+    margin-right: 160px;
+}
 
 .button.save-button {
     margin-left: 130%;
+}
+
+.button.left-button.mode-config {
+    margin-left: 20px;
+    margin-top: 30px;
 }
 
 
@@ -269,12 +299,15 @@ input {
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     margin-left: 0%;
+    margin-bottom: 0;
+    margin-top: 30px;
 }
 
 .input-item {
     margin-bottom: 20px;
     display: flex;
     flex-direction: column;
+    font-size: larger;
 }
 
 .input-label {
@@ -351,8 +384,24 @@ input {
     margin-top: 40px;
 }
 
+.error {
+    font-size: 0.9rem;
+    margin-top: 5px;
+    color: var(--dangerColor);
+}
+
+.input-item select option {
+    height: 100px;
+}
+
+.input-item.settings {
+    margin-bottom: 0;
+}
 
 /*-----------------------------------*/
+.tabs {
+    margin-left: 20px;
+}
 .nav-tabs {
     list-style: none;
     padding: 0;
@@ -373,6 +422,7 @@ input {
     color: #495057;
     border: 1px solid #ccc;
     border-radius: 5px 5px 0 0;
+    cursor: auto;
 }
 
 .nav-link.active {
