@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="UTF-8" />
+        <title>Diagnostics</title>
+        <link rel="stylesheet" />
+        <link rel="stylesheet" href="../style.css" />
+        <script defer type="module" src="diagnostics.js"></script>
+    </head>
+
+    <body>
+        <div class="main-container">
+            <div class="diagnostics-container">
+                <div class="table-header">
+                    <div class="column" id="column-1">No.</div>
+                    <div class="column" id="column-2">Time</div>
+                    <div class="column" id="column-3">Source</div>
+                    <div class="column" id="column-4">Destination</div>
+                    <div class="column" id="column-5">Length</div>
+                    <div class="column" id="column-6">Data</div>
+                </div>
+                <div class="table-rows" id="packet-container">
+                    
+                </div>
+            </div>
+            <div class="diagnostics-details">
+
+            </div>
+            <div class="bottom-container">
+                <div class="control-container">
+                    <div class="control-button" id="start"><img src="../../assets/images/play.png" alt=""></div>
+                    <div class="control-button stop-button-disabled" id="stop"><img src="../../assets/images/stop.png" alt=""></div>
+                    <div class="control-button" id="up"><img src="../../assets/images/up-arrow.png" alt=""></div>
+                    <div class="control-button" id="down"><img src="../../assets/images/down-arrow.png " alt=""></div>
+                    <div class="control-button save-icon" id="save"><img src="../../assets/images/save.png " alt=""></div>
+                    <div class="control-button" id="trash"><img src="../../assets/images/delete.png " alt=""></div>
+                    <div class="control-button search" id="stop"><img src="../../assets/images/tool.png" alt=""></div>
+                    <form class="input-item diag-filter">
+                        <input type="text" id="input" class="input-field" placeholder="Filter">
+                    </form>
+                </div>
+            </div>
+            <div>
+                <div class="button-container">
+                    <a href="#">
+                        <button class="button right-button diagnose-button" id="close-button">Quit</button>
+                    </a>   
+                </div>
+            </div>
+        </div>
+    </body>
+
+</html>

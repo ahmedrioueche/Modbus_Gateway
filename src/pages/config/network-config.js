@@ -1,15 +1,25 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+
     document.querySelectorAll('.input-item').forEach(inputItem => {
         const errorDiv = inputItem.querySelector(".error");
         if(errorDiv)
-        errorDiv.remove();
+          errorDiv.remove();
     })
 
-    const selectedMode = localStorage.getItem("selectedMode");
-    if (selectedMode == "RTU server mode") {
+    let selectedMode, networkIP, networkMask, networkGateway, remoteIP;
+    let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
+    let deviceId = await getConfigDevice();
+    const deviceIndex = storedDevices.findIndex(device => device.id === deviceId);
+    if (deviceIndex !== -1) {
+        selectedMode = storedDevices[deviceIndex].mode;
+        getNetworkData();
+    } 
+
+
+    if (selectedMode == "RTU Server Mode") {
         const inputList = document.querySelector(".input-list");
         const remoteIpItem = inputList.querySelector('.input-item#input4');
-        
+
         if (!remoteIpItem) {
             const inputItem = document.createElement("div");
             inputItem.classList.add("input-item");
@@ -23,115 +33,116 @@ document.addEventListener('DOMContentLoaded', () => {
             inputBox.classList.add("input-field");
             inputBox.setAttribute("id", "input4");
             inputBox.setAttribute("placeholder", "example:192.168.1.5");
-
+            inputBox.value = remoteIP;
             inputItem.appendChild(inputlabel);
             inputItem.appendChild(inputBox);
             inputList.appendChild(inputItem);
         }
     }
-    
-    const networkData = JSON.parse(localStorage.getItem("networkData")) || [];
 
-    networkData.forEach(item => {
-        const inputField = document.getElementById(item.id);
-        if (inputField) {
-            inputField.value = item.value;
-        }
-    });   
+    document.getElementById("input1").value = networkIP;
+    document.getElementById("input2").value = networkMask;
+    document.getElementById("input3").value = networkGateway;
 
     document.getElementById("save-button").addEventListener("click", () => {
 
         if(checkNetworkData()){
             saveNetworkData();
             sendConfigData();
-            window.mainAPI.closeConfigWindow();
-        }
-    });
-});
-
-
-function sendConfigData(){
-    const selectedMode = localStorage.getItem("selectedMode");
-    const UartConfigData = JSON.parse(localStorage.getItem("UartConfigData"));
-    const slaveId = JSON.parse(localStorage.getItem("slaveId"));
-    const networkData = JSON.parse(localStorage.getItem("networkData"));
-
-    const configBuffer = []
-    configBuffer.push(selectedMode);
-
-    const selectElementIds = ["select-baud", "select-parity", "select-stopbit", "select-databits"]; 
-    selectElementIds.forEach(id => {
-        if (UartConfigData[id]) {
-            configBuffer.push(UartConfigData[id]);
-        }
-    });
-    configBuffer.push(slaveId);
-
-    networkData.forEach(item => {
-        configBuffer.push(item.value);
-    });
-
-    window.serialAPI.getConfigData(configBuffer);
-}
-
-
-function checkNetworkData() {
-    let dataValid = true;
-    
-    document.querySelectorAll('.input-item').forEach(inputItem => {
-        const value = inputItem.querySelector('.input-field').value;
-        const id = inputItem.querySelector('.input-field').id;
-        console.log("value", value)
-        const errorDiv = inputItem.querySelector(".error");
-        if (errorDiv) {
-            errorDiv.remove();
-        }
-
-        if (!value) {
-            const newErrorDiv = document.createElement("div");
-            newErrorDiv.classList.add("error");
-            newErrorDiv.textContent = "Please fill in this field";
-            inputItem.appendChild(newErrorDiv);
-            dataValid = false;
-        } else if (!isValidInput(value)) {
-            const newErrorDiv = document.createElement("div");
-            newErrorDiv.classList.add("error");
-            newErrorDiv.textContent = "Please check the integrity of the data";
-            inputItem.appendChild(newErrorDiv);
-            dataValid = false;
+            //window.mainAPI.closeConfigWindow();
         }
     });
 
-    return dataValid;
-}
+    async function sendConfigData(){
+        
+        let configBuffer = []
+        configBuffer.push(storedDevices[deviceIndex].id);
+        configBuffer.push(storedDevices[deviceIndex].mode);
+        configBuffer.push(storedDevices[deviceIndex].baudrate);
+        configBuffer.push(storedDevices[deviceIndex].parity);
+        configBuffer.push(storedDevices[deviceIndex].stopBits);
+        configBuffer.push(storedDevices[deviceIndex].dataSize);
+        configBuffer.push(storedDevices[deviceIndex].slaveID);
+        configBuffer.push(storedDevices[deviceIndex].networkIP);
+        configBuffer.push(storedDevices[deviceIndex].networkMask);
+        configBuffer.push(storedDevices[deviceIndex].networkGateway);
+        if (selectedMode == "RTU Server Mode") 
+          configBuffer.push(storedDevices[deviceIndex].remoteIP);
 
-
-function saveNetworkData(){
-    const inputData = [];
-    document.querySelectorAll('.input-item').forEach(inputItem => {
-        const id = inputItem.querySelector('.input-field').id;
-        const value = inputItem.querySelector('.input-field').value;
-        inputData.push({ id, value });
-    });
-    localStorage.setItem("networkData", JSON.stringify(inputData));
-}
-
-
-function isValidInput(input){
-    if(input === undefined || input === '[object Object]')
-        return false;
-
-    const IpSegments = input.split('.');
-    if (IpSegments.length !== 4) {
-        return false;
+        window.serialAPI.getConfigData(configBuffer);
     }
 
-    for (const segment of IpSegments) {
-        const numSegment = Number(segment);
-        if (segment === "" || isNaN(numSegment) || !Number.isInteger(numSegment) || numSegment < 0 || numSegment > 255) {
+    function saveNetworkData(){
+        storedDevices[deviceIndex].networkIP = document.getElementById("input1").value;
+        storedDevices[deviceIndex].networkMask =  document.getElementById("input2").value;
+        storedDevices[deviceIndex].networkGateway =  document.getElementById("input3").value;
+        if (selectedMode == "RTU Server Mode") 
+            storedDevices[deviceIndex].remoteIP =  document.getElementById("input4").value;
+
+        localStorage.setItem('devices', JSON.stringify(storedDevices));
+    }
+
+    function getNetworkData(){
+        networkIP = storedDevices[deviceIndex].networkIP;
+        networkMask = storedDevices[deviceIndex].networkMask;
+        networkGateway = storedDevices[deviceIndex].networkGateway;
+        remoteIP = storedDevices[deviceIndex].remoteIP;
+    }
+
+    function checkNetworkData() {
+        let dataValid = true;
+        
+        document.querySelectorAll('.input-item').forEach(inputItem => {
+            const value = inputItem.querySelector('.input-field').value;
+            const id = inputItem.querySelector('.input-field').id;
+            console.log("value", value)
+            const errorDiv = inputItem.querySelector(".error");
+            if (errorDiv) {
+                errorDiv.remove();
+            }
+
+            if (!value) {
+                const newErrorDiv = document.createElement("div");
+                newErrorDiv.classList.add("error");
+                newErrorDiv.textContent = "Please fill in this field";
+                inputItem.appendChild(newErrorDiv);
+                dataValid = false;
+            } else if (!isValidInput(value)) {
+                const newErrorDiv = document.createElement("div");
+                newErrorDiv.classList.add("error");
+                newErrorDiv.textContent = "Please check the integrity of the data";
+                inputItem.appendChild(newErrorDiv);
+                dataValid = false;
+            }
+        });
+
+        return dataValid;
+    }
+
+    async function getConfigDevice(){
+        const configDevice = await window.serialAPI.getOpenedDevice();
+        const deviceId = `${configDevice.deviceDescriptor.idVendor}-${configDevice.deviceDescriptor.idProduct}`;
+        return deviceId;
+    }
+
+    function isValidInput(input){
+        if(input === undefined || input === '[object Object]')
+            return false;
+
+        const IpSegments = input.split('.');
+        if (IpSegments.length !== 4) {
             return false;
         }
+
+        for (const segment of IpSegments) {
+            const numSegment = Number(segment);
+            if (segment === "" || isNaN(numSegment) || !Number.isInteger(numSegment) || numSegment < 0 || numSegment > 255) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    return true;
-}
+});
+

@@ -1,34 +1,48 @@
-const SerialPort = require('serialport');
-const VirtualSerialPort = require('virtual-serialport');
-const { Readline } = require('@serialport/parser-readline');
+const { usb } = require('usb');
+const { findByIds } = require('usb');
+const { connect } = require("amqplib");
+let channel = null;
+const queue = "messages";
+setupRabbitMQ();
 
+async function setupRabbitMQ() {
+    const connection = await connect("amqp://localhost");
+    channel = await connection.createChannel();
+    await channel.assertQueue(queue, { durable: false });
+}
+
+usb.setDebugLevel(3)
 const CONFIG_HEADER = [0xAA, 0xBB, 0xCC, 0xDD];
+const START_SIGNAL = [0xFF, 0x33, 0xCC, 0x55];
+const STOP_SIGNAL = [0x44, 0x55, 0x66, 0xBB];
 const configStartIndex = CONFIG_HEADER.length;
 const configBuffToSend = [];
+const MIN_CONFIG_SIZE = 18;
+const PACKET_IDENTIFIER_LENGTH = 3
+const PACKET_IDENTIFIER = [0x61, 0x62, 0x63]
 
 function getConfigData(configBuffer) {
-    console.log("configBuffer", configBuffer );
+    console.log("configBuffer", configBuffer);
 
-    const CONFIG_SIZE = configBuffer.length;
     configBuffToSend.length = 0;
     
     for(let i = 0; i < CONFIG_HEADER.length; i++){
         configBuffToSend[i] = CONFIG_HEADER[i];
     }
+    const deviceId = configBuffer[0];
+    const selectedMode = configBuffer[1];
+    const UartBaud = configBuffer[2];
+    const UartParity = configBuffer[3];
+    const UartStopBits= configBuffer[4];
+    const UartDataSize = configBuffer[5];   
+    const slaveId    =  configBuffer[6];
+    const networkIP = configBuffer[7];
+    const networkMask = configBuffer[8];
+    const networkGateway = configBuffer[9];
+    const networkRemoteIP = configBuffer[10];
 
-    configBuffToSend[configStartIndex] = CONFIG_SIZE; 
-    const selectedMode = configBuffer[0];
-    const UartBaud = configBuffer[1];
-    const UartParity = configBuffer[2];
-    const UartStopBits= configBuffer[3];
-    const UartDataSize = configBuffer[4];
-    const slaveId    =  configBuffer[5];
-    const networkIP = configBuffer[6];
-    const networkMask = configBuffer[7];
-    const networkGateway = configBuffer[8];
-    const networkRemoteIP = configBuffer[9];
-
-    configBuffToSend[configStartIndex + 1] = selectedMode === "RTU server mode"? 1 : 2;
+    configBuffToSend[configStartIndex] = MIN_CONFIG_SIZE;
+    configBuffToSend[configStartIndex + 1] = selectedMode === "RTU Server Mode"? 1 : 2;
     switch(UartBaud){
         case '2400':
             configBuffToSend[configStartIndex + 2] = 1;
@@ -65,81 +79,135 @@ function getConfigData(configBuffer) {
     insertIPIntoArray(networkIP, configBuffToSend, configStartIndex + 7);
     insertIPIntoArray(networkMask, configBuffToSend, configStartIndex + 11);
     insertIPIntoArray(networkGateway, configBuffToSend, configStartIndex + 15);
-    if(selectedMode == 'RTU server mode')
+    if(selectedMode == 'RTU Server Mode'){
+        configBuffToSend[configStartIndex] += 4;
         insertIPIntoArray(networkRemoteIP, configBuffToSend, configStartIndex + 19);
+    }
 
-
-    console.log("configBuffToSend", configBuffToSend );
-    //sendOverSerial(configBuffToSend);
-    //endOverSerialTest(configBuffToSend);
-  }
-
-
-  function sendOverSerialTest(data){
-
-    // Create virtual serial ports
-    const port1 = new VirtualSerialPort('COM1');
-    const port2 = new VirtualSerialPort('COM2');
-    
-    // Create parsers for parsing incoming data as lines
-    const parser1 = port1.pipe(new Readline());
-    const parser2 = port2.pipe(new Readline());
-    
-    // Simulate communication between the ports
-    port1.pipe(port2);
-    port2.pipe(port1);
-    
-    // Add event listeners for data exchange
-    parser1.on('data', data => {
-      console.log('Data received on port 1:', data.toString());
-    });
-    
-    parser2.on('data', data => {
-      console.log('Data received on port 2:', data.toString());
-    });
-    
-    // Write data to one of the ports
-    port1.write('Hello from port 1!');
-    
-  }
-  
-
-
-// Function to send data over serial port
-function sendOverSerial(data) {
-    const portName = 'COM3'; 
-    const baudRate = 9600; 
-
-    const port = new SerialPort(portName, {
-        baudRate: baudRate
-    });
-
-    port.open((err) => {
-        if (err) {
-            return console.error('Error opening port:', err.message);
-        }
-
-        const bufferData = Buffer.from(data);
-
-        port.write(bufferData, (err) => {
-            if (err) {
-                return console.error('Error writing to port:', err.message);
-            }
-            console.log('Data sent over serial port:', bufferData);
-
-            port.close((err) => {
-                if (err) {
-                    return console.error('Error closing port:', err.message);
-                }
-                console.log('Serial port closed');
-            });
-        });
-    });
+    usbSendConfigData(configBuffToSend, deviceId);
 }
+
+function usbSendConfigData(configBuffToSend, deviceId){
+
+    const receiveBuffer = [];
+    const [idVendor, idProduct] = deviceId.split('-');
+    const device = findByIds(Number(idVendor), Number(idProduct));
+    if (device) {
+        usbSendData(device, configBuffToSend);
+        usbReceiveData(device, receiveBuffer);
+    }
+    else {
+        console.log("Error: couldn't find device");
+    }
+}
+
+function usbSendStartSignal(openedDevice){
+
+    const receiveBuffer = [];
+    const [idVendor, idProduct] = [openedDevice.deviceDescriptor.idVendor, openedDevice.deviceDescriptor.idProduct];
+    const device = findByIds(Number(idVendor), Number(idProduct));
+
+    if (device) {
+        if (device) {
+            usbSendData(device, START_SIGNAL);
+            usbReceiveData(device, receiveBuffer);
+            console.log("receiveBuffer START", receiveBuffer);
+        }  
+    } else {
+        console.log("Error: couldn't find device");
+    }
+}
+
+function usbSendStopSignal(openedDevice){
+
+    const receiveBuffer = [];
+    const [idVendor, idProduct] = [openedDevice.deviceDescriptor.idVendor, openedDevice.deviceDescriptor.idProduct];
+    const device = findByIds(Number(idVendor), Number(idProduct));
+
+    if (device) {
+        if (device) {
+            usbSendData(device, STOP_SIGNAL);
+            usbReceiveData(device, receiveBuffer);
+        }
+    }
+    else {
+        console.log("Error: couldn't find device");
+    }
+}
+
+
+function usbSendData(device, data){
+
+    device.open();
+    const interface = device.interfaces[0];
+    interface.claim();
+
+    const dataToSend = Buffer.from(data);
+    
+    interface.endpoint(0x01).transfer(dataToSend, (error) => {
+        if (error) {
+            console.error('Error sending data:', error);
+        } else {
+            console.log('Data sent successfully');
+            return true 
+        }
+    });
+    //device.close();
+}
+
+
+function usbReceiveData(device, buffer){
+   
+    const interface = device.interfaces[0];
+    interface.claim();
+
+    interface.endpoint(0x81).on('data', data => {
+      console.log('Received data:', data);
+      buffer = Array.from(data);
+      usbHandleReceivedData(device, buffer);
+    });
+
+    interface.endpoint(0x81).startPoll();
+}
+
+async function usbHandleReceivedData(device, buffer){
+    const interface = device.interfaces[0];
+    interface.endpoint(0x81).stopPoll();
+    //device.close();
+    const packetBuffer = []
+    if(isDataPacket(buffer)){
+        for(let i=0; i<buffer.length; i++){
+            packetBuffer[i] = buffer[PACKET_IDENTIFIER_LENGTH + i];
+        }
+        console.log("bruh")
+        channel.sendToQueue(queue, Buffer.from(packetBuffer));
+    }
+}
+
+function isDataPacket(buffer){
+
+    /*for(let i=0; i<PACKET_IDENTIFIER_LENGTH; i++){
+        if(buffer[i] !== PACKET_IDENTIFIER[i])
+            return false;
+    }*/
+    return true;
+}
+
 
 function insertIPIntoArray(ipAddress, array, startIndex) {
     let byteValues = ipAddress.split('.').map(part => parseInt(part));
     array.splice(startIndex, 0, ...byteValues);
 }
 
-module.exports.getConfigData = getConfigData;
+
+module.exports = {
+    getConfigData: getConfigData,
+    usbSendStartSignal:usbSendStartSignal,
+    usbSendStopSignal:usbSendStopSignal,
+};
+//TODO
+//send data from main to diagnose and display it
+//fix FREERTOS issue!
+//set password
+//update settings window
+//add help window

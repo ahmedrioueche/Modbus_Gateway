@@ -14,6 +14,7 @@
     <div class="container">
         <div class="sidebar">
             <ul>
+                <li class="clickable">General</li>
                 <li class="selected">Mode</li>
                 <li class="clickable">Serial</li>
                 <li class="clickable">Network</li>
@@ -42,17 +43,20 @@
             <div class="checkbox-list">
                 <div class="checkbox-list-item">
                     <input type="radio" id="radio1" name="mode" class="radio-input">
-                    <label for="radio1" class="radio-label">RTU server mode</label>
+                    <label for="radio1" class="radio-label">RTU Server Mode</label>
                 </div>
                 <div class="checkbox-list-item">
                     <input type="radio" id="radio2" name="mode" class="radio-input">
-                    <label for="radio2" class="radio-label">RTU client mode</label>
+                    <label for="radio2" class="radio-label">RTU Client Mode</label>
                 </div>
             </div>
             <div class="button-container">
                 <a href="serial-config.html">
-                    <button class="button left-button mode-config" id="next-button">Next</button>
+                    <button class="button left-button" id="next-button">Next</button>
                 </a>
+                <a href="general-config.html">  
+                    <button class="button right-button" id="previous-button">Previous</button>
+                </a>   
             </div>
         </div>
     </div>

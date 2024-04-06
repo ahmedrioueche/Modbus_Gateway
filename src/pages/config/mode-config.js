@@ -1,42 +1,48 @@
-document.addEventListener('DOMContentLoaded', () => {
-    saveSelectedMode();
-    window.onload = getSelectedMode;
+document.addEventListener('DOMContentLoaded', async () => {
+    
+    let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
+    let deviceId = await getConfigDevice();
+    const modeElements = document.getElementsByName("mode");
+    const existingDeviceIndex = storedDevices.findIndex(device => device.id === deviceId);
+    if (existingDeviceIndex !== -1) {
+        getSelectedMode(storedDevices[existingDeviceIndex].mode);
+    } 
+
+    function getSelectedMode(selectedMode) {
+        for (let i = 0; i < modeElements.length; i++) {
+            let modeLabel = document.querySelector(`[for=${modeElements[i].id}]`).textContent;
+            if (selectedMode === modeLabel) {
+                console.log("match")
+                modeElements[i].checked = true;
+            }
+        }
+    }
+    
+    function saveSelectedMode() {
+        let selectedMode; let selectedModeLabel;
+        for (let i = 0; i < modeElements.length; i++) {
+            if (modeElements[i].checked) {
+                selectedMode = modeElements[i].value;
+                selectedModeLabel = document.querySelector(`[for=${modeElements[i].id}]`);
+                console.log("checked:", selectedModeLabel.textContent);
+                storedDevices[existingDeviceIndex].mode = selectedModeLabel.textContent;
+            }
+        }
+        localStorage.setItem('devices', JSON.stringify(storedDevices));
+    }
 
     document.getElementById("next-button").addEventListener("click", () => {
         saveSelectedMode();
     })
-    const sidebarLinks = document.querySelectorAll('.clickable');
-    sidebarLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            saveSelectedMode();
-        });
-    });
+    document.getElementById("previous-button").addEventListener("click", () => {
+        saveSelectedMode();
+    })
 });
 
 
-let selectedMode, selectedModeLabel;
-const modeElements = document.getElementsByName("mode");
-
-function getSelectedMode() {
-    for (let i = 0; i < modeElements.length; i++) {
-        let modeLabel = document.querySelector(`[for=${modeElements[i].id}]`).textContent;
-        if (selectedMode === modeLabel) {
-            console.log("match")
-            modeElements[i].checked = true;
-        }
-    }
+async function getConfigDevice(){
+    const configDevice = await window.serialAPI.getOpenedDevice();
+    const deviceId = `${configDevice.deviceDescriptor.idVendor}-${configDevice.deviceDescriptor.idProduct}`;
+    return deviceId;
 }
-
-function saveSelectedMode() {
-    selectedMode = localStorage.getItem("selectedMode");
-    for (let i = 0; i < modeElements.length; i++) {
-        if (modeElements[i].checked) {
-            selectedMode = modeElements[i].value;
-            selectedModeLabel = document.querySelector(`[for=${modeElements[i].id}]`);
-            console.log("checked:", selectedModeLabel.textContent);
-            localStorage.setItem("selectedMode", selectedModeLabel.textContent);
-        }
-    }
-}
-
 

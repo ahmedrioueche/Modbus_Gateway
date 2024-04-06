@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Packet Details</title>
+    <link rel="stylesheet" href="../style.css" />
+    <script defer type="module" src="packetDetails.js"></script>
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="packet-details">
+            <table>
+                <tr>
+                    <td><strong>Packet number:</strong></td>
+                    <td id="number" class="packet-detail-span"></td>
+                </tr>
+                <tr>
+                    <td><strong>Time:</strong></td>
+                    <td id="time" class="packet-detail-span"></td>
+                </tr>
+                <tr>
+                    <td><strong>Source:</strong></td>
+                    <td id="source"></td>
+                </tr>
+                <tr>
+                    <td><strong>Destination:</strong></td>
+                    <td id="destination"></td>
+                </tr>
+                <tr>
+                    <td><strong>Length:</strong></td>
+                    <td id="length"></td>
+                </tr>
+                <tr>
+                    <td class="data"><strong>Data:</strong></td>
+                    <td class="data-container">
+                        <div id="data" class="data-content"></div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="button-container">
+            <a href="#">
+                <button class="button left-button diagnose-details-button" id="close-button">Close</button>
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

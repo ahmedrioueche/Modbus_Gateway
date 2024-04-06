@@ -14,6 +14,7 @@
     <div class="container">
         <div class="sidebar">
             <ul>
+                <li class="clickable">General</li>
                 <li class="clickable">Mode</li>
                 <li class="selected">Serial</li>
                 <li class="clickable">Network</li>
@@ -29,7 +30,7 @@
                     <select id="select-baud" class="select-field">
                         <option>2400</option>
                         <option selected>9600</option>
-                        <option>19200</option>
+                        <option >19200</option>
                         <option>38400</option>
                         <option>115200</option>
                     </select>
@@ -43,15 +44,15 @@
                     </select>
                 </div>  
                 <div class="input-item">
-                    <label class="input-label">Stop bit</label>
-                    <select id="select-stopbit" class="select-field">
+                    <label class="input-label">Stop bits</label>
+                    <select id="select-stopbits" class="select-field">
                         <option selected>1</option>
                         <option>2</option>
                     </select>
                 </div>
                 <div class="input-item">
                     <label class="input-label">Data size</label>
-                    <select id="select-databits" class="select-field">
+                    <select id="select-datasize" class="select-field">
                         <option selected>8</option>
                         <option>9</option>
                     </select>
@@ -65,7 +66,7 @@
             <div class="button-container">
                 <a href="#">
                     <button class="button left-button" id="next-button">Next</button>
-                </a>
+                </a>    
                 <a href="mode-config.html">
                     <button class="button right-button" id="previous-button">Previous</button>
                 </a>           
