@@ -5,15 +5,6 @@ const { usb } = require('usb');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
 const { EventEmitter } = require('stream');
-const { connect } = require("amqplib");
-let channel = null;
-const queue = "messages";
-setupRabbitMQ();
-async function setupRabbitMQ() {
-  const connection = await connect("amqp://localhost");
-  channel = await connection.createChannel();
-  await channel.assertQueue(queue, { durable: false });
-}
 
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -33,7 +24,7 @@ const createMainWindow = () => {
 };
 
 function closeMainWindow() {
-  app.quit();
+   app.quit();
 }
 
 app.on('ready', createMainWindow);
@@ -149,7 +140,7 @@ module.exports.closeDiagnosticsWindow = closeDiagnosticsWindow;
 /*----------------Packet details window----------------------*/
 let packetDetailsWindow;
 function createPacketDetailsWindow() {
-  packetDetailsWindow = createWindow(packetDetailsWindow, 500, 400, 'pages/main/packetDetails.html', false, true)
+  packetDetailsWindow = createWindow(packetDetailsWindow, 500, 600, 'pages/main/packetDetails.html', false, true)
 }
 
 function closePacketDetailsWindow() {
@@ -246,6 +237,7 @@ ipcMain.on('getConfigData', (event, configBuffer) => {
 usb.on('attach', function(device) {
   //send a signal to main to display the device
   mainWindow.webContents.send('usbDeviceAttached', device);
+
 });
 
 usb.on('detach', function(device) {
@@ -272,7 +264,6 @@ ipcMain.on("savePacketData", (event, packet) => {
 
 ipcMain.handle("getOpenedPacketData", ()=> {return packetData})
 
-
 ipcMain.on("sendStartSignal", (event, device)=> {
   usbSendStartSignal(device);
 })
@@ -281,13 +272,12 @@ ipcMain.on("sendStopSignal", (event, device)=> {
   usbSendStopSignal(device);
 })
 
-
-channel.consume(queue, (packetBuffer)=> {
-  console.log("packetBuffer in index.js", packetBuffer);
-  diagnosticsWindow.webContents.send("getPacketData", packetBuffer);
+process.on("data", function(packetBuffer) {
+  console.log("packetBuffer in main", packetBuffer)
+  diagnosticsWindow.webContents.send("getPacketData", packetBuffer)
 })
 
-
+/*------------------save window--------------------------*/
 let dialogOpened = false; 
 ipcMain.on("sendPacketsToSave", (event, packets)=>{
   if(packets.length == 0 || dialogOpened){

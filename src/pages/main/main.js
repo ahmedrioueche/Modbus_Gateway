@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById("diagnose-button").addEventListener("click", () => {
         window.mainAPI.createDiagnosticsWindow();
+        console.log("selectedDevice", selectedDevice)
         window.serialAPI.saveOpenedDevice(selectedDevice); //save the device thats being diagnosed
     })
 

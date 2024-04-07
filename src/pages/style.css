@@ -622,7 +622,7 @@ h4 {
 
 /*--------diags details--------*/
 .diagnose-details-button {
-    margin-left: -320px;
+    margin-right: -320px;
     margin-bottom: 10px;
     position: relative;
 }
@@ -667,6 +667,11 @@ td:first-child {
 .packet-details table .data {
     vertical-align: top;
 }
+
+.rawData-row {
+    
+}
+
 
 /*------scroll-bar-------------*/
 ::-webkit-scrollbar {

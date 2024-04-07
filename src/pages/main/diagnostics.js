@@ -1,7 +1,19 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
+    
     const device = await window.serialAPI.getOpenedDevice();
+    let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
+    let networkIP, remoteIP, mbMode;
+    storedDevices.forEach(storedDevice => {
+        const deviceId = `${device.deviceDescriptor.idVendor}-${device.deviceDescriptor.idProduct}`;
+        if(storedDevice.id === deviceId){
+            networkIP = storedDevice.networkIP;
+            remoteIP = storedDevice.remoteIP;
+            mbMode = storedDevice.mode;
+        }
+    })      
 
+    
     const startButtonEl = document.getElementById("start");
     const stopButtonEl = document.getElementById("stop");
 
@@ -27,79 +39,105 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     startButtonEl.addEventListener("click", startButtonClickHandler);
 
-    
-    const packet1 = {
-        number: 1,
-        type: 1,
-        time: "0.020000",
-        source: "RTU client, ID = 2",
-        destination: "RTU server, ID = 5",
-        length: "24", 
-        data: "11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84 11 01 0013 0025 0E84",
-    }
-    const packet2 = {
-        number: 2,
-        type: 2,
-        time: "0.024000",
-        source: "TCP client, IP = 192.168.2.1",
-        destination: "TCP server,IP = 192.168.2.5",
-        length: "20", 
-        data: "Ok",
-    }
-    const packet3 = {
-        number: 3,
-        type: 3,
-        time: "0.020000",
-        source: "TCP server, IP = 192.168.2.5",
-        destination: "TCP client, IP = 192.168.2.1",
-        length: "23", 
-        data: "Ok",
-    }
-    const packet4 = {
-        number: 4,
-        type: 4,
-        time: "0.025000",
-        source: "RTU server, ID = 5",
-        destination: "RTU client, ID = 2",
-        length: "20", 
-        data: "Ok",
-    }
+    let packetsBuffer = []; let startTime; let packetNumber = 1;
+    window.serialAPI.getPacketData(recPacket => {
+        if(!startTime){
+            startTime = Date.now();
+        }
+        const relativeArrivalTime = Date.now() - startTime;
+        
+        console.log("packet", recPacket);
+        let packetDataObj = {};
+        console.log( recPacket.length);
+        let recPacketLength = recPacket.length; 
+        const type = recPacket[0];
 
-    let packetsBuffer = []
-    packetsBuffer.push(packet1);
-    packetsBuffer.push(packet2);
-    packetsBuffer.push(packet3);
-    packetsBuffer.push(packet4);
-
-    window.serialAPI.getPacketData((packet) => {
-        console.log("packet", packet);
+        switch (type) {
+            case 1: // SOURCE = RTU CLIENT
+                packetDataObj = {
+                    "packetSource": "RTU CLIENT",
+                    "packetDestination": "RTU SERVER",
+                    "Slave ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} (${recPacket[1]})`,
+                    "Function Code": `${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[2]})`,
+                    "Starting Address": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} ${(recPacket[4] < 16 ? '0' : '')}${recPacket[4].toString(16).toUpperCase()} (${recPacket[3]} ${recPacket[4]})`,
+                    "Quantity": `${(recPacket[5] < 16 ? '0' : '')}${recPacket[5].toString(16).toUpperCase()} ${(recPacket[6] < 16 ? '0' : '')}${recPacket[6].toString(16).toUpperCase()} (${recPacket[5]} ${recPacket[6]})`,
+                    "CRC": `${(recPacket[recPacketLength - 2] < 16 ? '0' : '')}${recPacket[recPacketLength - 2].toString(16).toUpperCase()} ${(recPacket[recPacketLength - 1] < 16 ? '0' : '')}${recPacket[recPacketLength - 1].toString(16).toUpperCase()} (${recPacket[recPacketLength - 2]} ${recPacket[recPacketLength - 1]})`
+                };
+                break;
+        
+            case 2: // SOURCE = RTU SERVER
+                packetDataObj = {
+                    "packetSource": "RTU SERVER",
+                    "packetDestination": "RTU CLIENT",
+                    "Slave ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} (${recPacket[1]})`,
+                    "Function Code": `${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[2]})`,
+                    "Bytes To Follow": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} (${recPacket[3]})`,
+                    "Data": `${recPacket.slice(4, recPacketLength - 2).map(byte => (byte < 16 ? '0' : '') + byte.toString(16).toUpperCase()).join(' ')} (${recPacket.slice(4, recPacketLength - 2).join(' ')})`, // Convert each byte to hexadecimal
+                    "CRC": `${(recPacket[recPacketLength - 2] < 16 ? '0' : '')}${recPacket[recPacketLength - 2].toString(16).toUpperCase()} ${(recPacket[recPacketLength - 1] < 16 ? '0' : '')}${recPacket[recPacketLength - 1].toString(16).toUpperCase()} (${recPacket[recPacketLength - 2]} ${recPacket[recPacketLength - 1]})`
+                };
+                break;
+        
+            case 3: // SOURCE TCP CLIENT
+                packetDataObj = {
+                    "packetSource": "TCP CLIENT",
+                    "packetDestination": "TCP SERVER",
+                    "Transaction ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} ${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[1]} ${recPacket[2]})`,
+                    "Protocol Id": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} ${(recPacket[4] < 16 ? '0' : '')}${recPacket[4].toString(16).toUpperCase()} (${recPacket[3]} ${recPacket[4]})`,
+                    "Message Length": `${(recPacket[5] < 16 ? '0' : '')}${recPacket[5].toString(16).toUpperCase()} ${(recPacket[6] < 16 ? '0' : '')}${recPacket[6].toString(16).toUpperCase()} (${recPacket[5]} ${recPacket[6]})`,
+                    "Unit ID": `${(recPacket[7] < 16 ? '0' : '')}${recPacket[7].toString(16).toUpperCase()} (${recPacket[7]})`,
+                    "Function Code": `${(recPacket[8] < 16 ? '0' : '')}${recPacket[8].toString(16).toUpperCase()} (${recPacket[8]})`,
+                    "Starting Address": `${(recPacket[9] < 16 ? '0' : '')}${recPacket[9].toString(16).toUpperCase()} ${(recPacket[10] < 16 ? '0' : '')}${recPacket[10].toString(16).toUpperCase()} (${recPacket[9]} ${recPacket[10]})`,
+                    "Quantity": `${(recPacket[11] < 16 ? '0' : '')}${recPacket[11].toString(16).toUpperCase()} (${recPacket[11]})`
+                };
+                break;
+        
+            case 4: // SOURCE TCP SERVER
+                packetDataObj = {
+                    "packetSource": "TCP SERVER",
+                    "packetDestination": "TCP CLIENT",
+                    "Transaction ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} ${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[1]} ${recPacket[2]})`,
+                    "Protocol ID": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} ${(recPacket[4] < 16 ? '0' : '')}${recPacket[4].toString(16).toUpperCase()} (${recPacket[3]} ${recPacket[4]})`,
+                    "Message Length": `${(recPacket[5] < 16 ? '0' : '')}${recPacket[5].toString(16).toUpperCase()} ${(recPacket[6] < 16 ? '0' : '')}${recPacket[6].toString(16).toUpperCase()} (${recPacket[5]} ${recPacket[6]})`,
+                    "Unit ID": `${(recPacket[7] < 16 ? '0' : '')}${recPacket[7].toString(16).toUpperCase()} (${recPacket[7]})`,
+                    "Function Code": `${(recPacket[8] < 16 ? '0' : '')}${recPacket[8].toString(16).toUpperCase()} (${recPacket[8]})`,
+                    "Data": `${recPacket.slice(9, recPacketLength).map(byte => byte.toString(16).toUpperCase()).join(' ')} (${recPacket.slice(9, recPacketLength).join(' ')})` // Convert each byte to hexadecimal and uppercase
+                }
+            }
+        
         //organize packet data
-        //create packet ui
+        const packetDestination = (type === 1 || type === 2) ? `${packetDataObj["packetDestination"]} ID = ${packetDataObj["Slave ID"]}` :
+                          (type === 3 && mbMode === "RTU Server Mode") ? `${packetDataObj["packetDestination"]} IP = ${remoteIP}` :
+                          (type === 3 || type === 4) ? `${packetDataObj["packetDestination"]} IP = ${networkIP}` :
+                          packetDataObj["packetDestination"];
+
+        const packetSource = (type === 3 && mbMode === "RTU Server Mode") ? `${packetDataObj["packetSource"]} IP = ${networkIP}` :
+                            (type === 4 && mbMode === "RTU Server Mode") ? `${packetDataObj["packetSource"]} IP = ${remoteIP}` :
+                            packetDataObj["packetSource"];
+
+        
+        const packet = {
+            number: packetNumber,
+            type: type,
+            time: relativeArrivalTime,
+            source: packetSource,
+            destination: packetDestination,
+            length: recPacketLength - 1, 
+            rawData: recPacket.slice(1).map(byte => (byte < 16 ? '0' : '') + byte.toString(16).toUpperCase()).join(' '),
+            packetData: packetDataObj,
+        }
+
         //add packet to packetBuffer
-        //packets.push(packet); 
+        packetsBuffer.push(packet);
+        packetNumber++;
+        console.log("packetsBuffer", packetsBuffer)
+        //create packet ui
+        createPacketUI(packet);
+        
     })
 
     document.getElementById("save").addEventListener("click", ()=> {
         window.serialAPI.sendPackets(packetsBuffer);
     })
-
-
-    createPacketUI(packet1);
-    createPacketUI(packet2);
-    createPacketUI(packet3);
-    createPacketUI(packet4);
-    createPacketUI(packet1);
-    createPacketUI(packet2);
-    createPacketUI(packet3);
-    createPacketUI(packet4);
-    createPacketUI(packet1);
-    createPacketUI(packet2);
-    createPacketUI(packet3);
-    createPacketUI(packet4);
-    createPacketUI(packet1);
-    createPacketUI(packet2);
-    createPacketUI(packet3);
-    createPacketUI(packet4);
 
     function createPacketUI(packet){
         const packetContainer = document.getElementById("packet-container");
@@ -110,7 +148,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const destinationEl = document.createElement("div");
         const lengthEl = document.createElement("div");
         const dataEl = document.createElement("div");
-
+    
         packetEl.setAttribute("class", "packet-row");
         packetEl.setAttribute("id", "packet");
         colorPacketRow(packet, packetEl);
@@ -118,7 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             window.serialAPI.savePacketData(packet);
             window.mainAPI.createPacketDetailsWindow();
         })
-
+    
         const packetElements = [numberEl, timeEl, sourceEl, destinationEl, lengthEl, dataEl];
         packetElements.forEach((element, index) => {
             element.setAttribute("class", "column");
@@ -127,10 +165,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         packetContainer.appendChild(packetEl); 
         packetElements.forEach((element, index) => {
             const propertyName = Object.keys(packet)[index+1]; // Get property name from object
-            element.textContent = packet[propertyName]; // Access property value by name
+            let propertyValue = packet[propertyName]; // Access property value by name
+            if (propertyName === "source" || propertyName === "destination") {
+                const lines = propertyValue.split("IP = ");
+                propertyValue = lines.join("<br>IP = ");
+            }
+            element.innerHTML = propertyValue; // Set innerHTML to allow line breaks
             packetEl.appendChild(element);
         })
     }
+    
 
     document.getElementById("trash").addEventListener("click", ()=> {
         cleanPacketsContainer();
