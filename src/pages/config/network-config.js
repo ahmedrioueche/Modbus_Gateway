@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(checkNetworkData()){
             saveNetworkData();
             sendConfigData();
-            //window.mainAPI.closeConfigWindow();
+            window.mainAPI.closeConfigWindow();
         }
     });
 
@@ -140,7 +140,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return false;
             }
         }
-
         return true;
     }
 

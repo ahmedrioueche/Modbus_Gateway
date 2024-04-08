@@ -191,6 +191,14 @@ input {
     overflow: hidden;
 }
 
+.table-rows{
+    height: 1000px;
+}
+
+.packet-row {
+    font-size: 0.8rem;
+}
+
 .device-row {
     cursor: pointer;
 }
@@ -203,6 +211,7 @@ input {
     flex: 1;
     padding: 10px;
     border-right: 1px solid #ddd;
+    font-size: 0.9rem;
 }
 
 .column:last-child {
@@ -464,7 +473,6 @@ h4 {
 }
 
 /*----------------------------*/
-
 .diagnostics-container {
     overflow: auto;
 }
@@ -492,7 +500,6 @@ h4 {
     cursor: pointer;
     height: 40px;
 }
-
 
 .packet-row.type-1 {
     background-color: var(--packet1Color);
@@ -530,7 +537,7 @@ h4 {
 .bottom-container {
     display: flex;
     flex-direction: row;
-    height: 100px;
+    height: 150px;
     margin-left: -20px;
 }
 

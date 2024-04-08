@@ -140,7 +140,7 @@ module.exports.closeDiagnosticsWindow = closeDiagnosticsWindow;
 /*----------------Packet details window----------------------*/
 let packetDetailsWindow;
 function createPacketDetailsWindow() {
-  packetDetailsWindow = createWindow(packetDetailsWindow, 500, 600, 'pages/main/packetDetails.html', false, true)
+  packetDetailsWindow = createWindow(packetDetailsWindow, 500, 615, 'pages/main/packetDetails.html', false, true)
 }
 
 function closePacketDetailsWindow() {
@@ -273,7 +273,6 @@ ipcMain.on("sendStopSignal", (event, device)=> {
 })
 
 process.on("data", function(packetBuffer) {
-  console.log("packetBuffer in main", packetBuffer)
   diagnosticsWindow.webContents.send("getPacketData", packetBuffer)
 })
 
@@ -288,7 +287,7 @@ ipcMain.on("sendPacketsToSave", (event, packets)=>{
   const formattedDateTime = currentDateTime.toISOString().replace(/[-T:]/g, '-').split('.')[0]; // Format: YYYYMMDDHHmmSS
   const saveDialog = dialog.showSaveDialog({
     title: 'Save Packets',
-    defaultPath: `packets_${formattedDateTime}`, 
+    defaultPath: `mb_packets_${formattedDateTime}`, 
     filters: [
         { name: 'JSON Files', extensions: ['json'] },
         { name: 'Excel Files', extensions: ['xlsx'] }

@@ -1,6 +1,8 @@
 const { usb } = require('usb');
 const { findByIds } = require('usb');
 usb.setDebugLevel(3)
+const ENDPOINT_OUT = 0x01;
+const ENDPOINT_IN = 0x81;
 
 const CONFIG_HEADER = [0xAA, 0xBB, 0xCC, 0xDD];
 const START_SIGNAL = [0xFF, 0x33, 0xCC, 0x55];
@@ -85,29 +87,23 @@ function usbSendConfigData(configBuffToSend, deviceId){
     const device = findByIds(Number(idVendor), Number(idProduct));
     if (device) {
         usbSendData(device, configBuffToSend);
-        //usbReceiveData(device, receiveBuffer);
     }
     else {
         console.log("Error: couldn't find device");
     }
 }
-let startSignal = false; let usbDevice;
+
 function usbSendStartSignal(openedDevice){
-    usbDevice = openedDevice;
     const receiveBuffer = [];
     const [idVendor, idProduct] = [openedDevice.deviceDescriptor.idVendor, openedDevice.deviceDescriptor.idProduct];
     const device = findByIds(Number(idVendor), Number(idProduct));
 
     if (device) {
-        usbSendData(device, START_SIGNAL);
-        usbReceiveData(device);
+        usbStart(device, START_SIGNAL);
         console.log("receiveBuffer START", receiveBuffer);
     } else {
         console.log("Error: couldn't find device");
     }
-
-    startSignal = true;
-
 }
 
 function usbSendStopSignal(openedDevice){
@@ -117,16 +113,12 @@ function usbSendStopSignal(openedDevice){
 
     if (device) {
         usbSendData(device, STOP_SIGNAL);
-        startSignal = false;
+        usbStop(device);
     }
     else {
         console.log("Error: couldn't find device");
     }
- 
 }
-
-const ENDPOINT_OUT = 0x01;
-const ENDPOINT_IN = 0x81;
 
 function usbSendData(device, data) {
     try {
@@ -147,48 +139,68 @@ function usbSendData(device, data) {
     } catch (error) {
         console.error('Error sending data:', error);
     }
-}   
+}  
 
-function usbReceiveData(device) {
+let interface;
+function usbStart(device, START_SIGNAL){
 
-    try {
-        const interface = device.interfaces[0];
+    if(device){
+        
+        device.open();
+
+        interface = device.interfaces[0];
+        interface.claim();
+
+        const dataToSend = Buffer.from(START_SIGNAL);
+
+        interface.endpoint(ENDPOINT_OUT).transfer(dataToSend, (error) => {
+            if (error) {
+                console.error('Error sending data:', error);
+            } else {
+                console.log('Data sent successfully');
+            }
+
+        }); 
+
         interface.endpoint(ENDPOINT_IN).startPoll(3, 100);
         interface.endpoint(ENDPOINT_IN).on('data', data => {
             buffer = Array.from(data);
             console.log("receiveBuffer", buffer );
-            usbHandleReceivedData(device, buffer);   
+            usbHandleReceivedData(buffer);
         });
-        
-    } catch (error) {
-        console.error('Error receiving data:', error);
+    }
+    else {
+        console.log("WTF IS DEVICE")
     }
 }
 
-function usbHandleReceivedData(device, buffer){
-    const interface = device.interfaces[0];
-    interface.endpoint(0x81).stopPoll();
-    //device.close();
+function usbStop(device) {
+    if(device){
+        interface.endpoint(ENDPOINT_IN).stopPoll();
+        interface.release();
+    }
+}
+
+
+function usbHandleReceivedData(buffer){
+ 
     const packetBuffer = []
     if(isDataPacket(buffer)){
-        for(let i=0; i<buffer.length; i++){
-            packetBuffer[i] = buffer[i];
+        for(let i=0; i<buffer.length - PACKET_IDENTIFIER_LENGTH; i++){
+            packetBuffer[i] = buffer[PACKET_IDENTIFIER_LENGTH + i];
         }
     }
-    console.log("packetBuffer in .js", packetBuffer)
-    process.emit("data", packetBuffer)
+    process.emit("data", packetBuffer);
 }
 
 function isDataPacket(buffer){
 
-    /*
     for(let i=0; i<PACKET_IDENTIFIER_LENGTH; i++){
         if(buffer[i] !== PACKET_IDENTIFIER[i])
             return false;
-    }*/
+    }
     return true;
 }
-
 
 function insertIPIntoArray(ipAddress, array, startIndex) {
     let byteValues = ipAddress.split('.').map(part => parseInt(part));
@@ -201,8 +213,9 @@ module.exports.usbSendStartSignal = usbSendStartSignal;
 module.exports.usbSendStopSignal = usbSendStopSignal;
 
 //TODO
-//send data from main to diagnose and display it
 //fix FREERTOS issue!
+//fix Modbus part
+//handle exceptions
 //set password
 //update settings window
 //add help window

@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
-    
     const device = await window.serialAPI.getOpenedDevice();
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
     let networkIP, remoteIP, mbMode;
@@ -39,14 +38,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     startButtonEl.addEventListener("click", startButtonClickHandler);
 
-    let packetsBuffer = []; let startTime; let packetNumber = 1;
+    let packetsBuffer = []; let startTime; 
     window.serialAPI.getPacketData(recPacket => {
         if(!startTime){
             startTime = Date.now();
         }
-        const relativeArrivalTime = Date.now() - startTime;
-        
-        console.log("packet", recPacket);
+        const relativeArrivalTime = ((Date.now() - startTime)/1000).toFixed(6);
+
         let packetDataObj = {};
         console.log( recPacket.length);
         let recPacketLength = recPacket.length; 
@@ -55,8 +53,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         switch (type) {
             case 1: // SOURCE = RTU CLIENT
                 packetDataObj = {
-                    "packetSource": "RTU CLIENT",
-                    "packetDestination": "RTU SERVER",
+                    "packetSource": "RTU Client",
+                    "packetDestination": "RTU Server",
                     "Slave ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} (${recPacket[1]})`,
                     "Function Code": `${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[2]})`,
                     "Starting Address": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} ${(recPacket[4] < 16 ? '0' : '')}${recPacket[4].toString(16).toUpperCase()} (${recPacket[3]} ${recPacket[4]})`,
@@ -67,8 +65,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         
             case 2: // SOURCE = RTU SERVER
                 packetDataObj = {
-                    "packetSource": "RTU SERVER",
-                    "packetDestination": "RTU CLIENT",
+                    "packetSource": "RTU Server",
+                    "packetDestination": "RTU Client",
                     "Slave ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} (${recPacket[1]})`,
                     "Function Code": `${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[2]})`,
                     "Bytes To Follow": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} (${recPacket[3]})`,
@@ -79,10 +77,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         
             case 3: // SOURCE TCP CLIENT
                 packetDataObj = {
-                    "packetSource": "TCP CLIENT",
-                    "packetDestination": "TCP SERVER",
+                    "packetSource": "TCP Client",
+                    "packetDestination": "TCP Server",
                     "Transaction ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} ${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[1]} ${recPacket[2]})`,
-                    "Protocol Id": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} ${(recPacket[4] < 16 ? '0' : '')}${recPacket[4].toString(16).toUpperCase()} (${recPacket[3]} ${recPacket[4]})`,
+                    "Protocol ID": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} ${(recPacket[4] < 16 ? '0' : '')}${recPacket[4].toString(16).toUpperCase()} (${recPacket[3]} ${recPacket[4]})`,
                     "Message Length": `${(recPacket[5] < 16 ? '0' : '')}${recPacket[5].toString(16).toUpperCase()} ${(recPacket[6] < 16 ? '0' : '')}${recPacket[6].toString(16).toUpperCase()} (${recPacket[5]} ${recPacket[6]})`,
                     "Unit ID": `${(recPacket[7] < 16 ? '0' : '')}${recPacket[7].toString(16).toUpperCase()} (${recPacket[7]})`,
                     "Function Code": `${(recPacket[8] < 16 ? '0' : '')}${recPacket[8].toString(16).toUpperCase()} (${recPacket[8]})`,
@@ -93,8 +91,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         
             case 4: // SOURCE TCP SERVER
                 packetDataObj = {
-                    "packetSource": "TCP SERVER",
-                    "packetDestination": "TCP CLIENT",
+                    "packetSource": "TCP Server",
+                    "packetDestination": "TCP Client",
                     "Transaction ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} ${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[1]} ${recPacket[2]})`,
                     "Protocol ID": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} ${(recPacket[4] < 16 ? '0' : '')}${recPacket[4].toString(16).toUpperCase()} (${recPacket[3]} ${recPacket[4]})`,
                     "Message Length": `${(recPacket[5] < 16 ? '0' : '')}${recPacket[5].toString(16).toUpperCase()} ${(recPacket[6] < 16 ? '0' : '')}${recPacket[6].toString(16).toUpperCase()} (${recPacket[5]} ${recPacket[6]})`,
@@ -116,8 +114,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         
         const packet = {
-            number: packetNumber,
             type: type,
+            number: packetsBuffer.length + 1,
             time: relativeArrivalTime,
             source: packetSource,
             destination: packetDestination,
@@ -128,8 +126,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         //add packet to packetBuffer
         packetsBuffer.push(packet);
-        packetNumber++;
-        console.log("packetsBuffer", packetsBuffer)
         //create packet ui
         createPacketUI(packet);
         
@@ -173,12 +169,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             element.innerHTML = propertyValue; // Set innerHTML to allow line breaks
             packetEl.appendChild(element);
         })
+        const columns = document.querySelectorAll(".column");
+        columns.forEach(column => {
+            column.style.fontSize = "0.8rem"; // Adjust the font size as needed
+        });
     }
     
-
     document.getElementById("trash").addEventListener("click", ()=> {
         cleanPacketsContainer();
         packetsBuffer.length = 0;
+        startTime = null;
     })
   
     const searchIcon = document.querySelector(".search img");
