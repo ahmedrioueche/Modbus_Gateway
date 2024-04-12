@@ -28,6 +28,7 @@ body {
     --packet2Color: rgb(143, 236, 243);
     --packet3Color: rgb(173, 249, 202);
     --packet4Color: rgb(243, 209, 217);
+    --packetExceptionColor: rgba(0, 0, 0, 0.8);
 }
 
 .container {
@@ -40,7 +41,7 @@ body {
     width: 100%;
 }
 
-.config-window {
+.settings-window {
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
@@ -50,18 +51,40 @@ body {
     border: none;
     box-shadow: none;
     margin-left: 20px;
+    overflow: auto;
+}
+
+.settings-window .button-container {
+    display: flex;
+    flex-direction: row;
+    margin: 0;
+    padding: 0;
+}
+
+.settings-window .button-container .left-button {
+    margin: 0;
+    margin-right: 120px;
+    margin-bottom: 10px;
+}
+
+.settings-window .button-container .right-button{
+    margin: 0;
+    margin-right: -110px;
 }
 
 .config-content {
     flex: 1;
     padding: 20px;
     box-sizing: border-box;
-    overflow-y: auto;
-    margin-left: 4%;
+    overflow: auto;
+    margin-left: 60px;
+    margin-top: 3px;
 }
 
 h2 {
     color: var(--mainColor);
+    text-align: center;
+    margin-right: 75px;
 }
 
 label {
@@ -77,7 +100,7 @@ input {
 }
 
 .sidebar {
-    width: 25%;
+    width: 30%;
     background-color: var(--sideColor);
     color: white;
     padding: 20px;
@@ -120,6 +143,11 @@ input {
 
 .tabs {
     margin: 50px auto;
+    width: 400px;
+}
+
+.mode-config-container {
+    margin-left: -20px;
 }
 
 /*-----checkbox---------*/
@@ -178,7 +206,7 @@ input {
     padding: 10px;
     padding-top: 0px;
     border-radius: 5px;
-    overflow: auto;
+    height: 100px;
 }
 
 .table-header,
@@ -191,8 +219,9 @@ input {
     overflow: hidden;
 }
 
-.table-rows{
-    height: 1000px;
+.table-rows {
+    height: 530px;
+    overflow: auto;
 }
 
 .packet-row {
@@ -210,7 +239,6 @@ input {
 .column {
     flex: 1;
     padding: 10px;
-    border-right: 1px solid #ddd;
     font-size: 0.9rem;
 }
 
@@ -221,6 +249,7 @@ input {
 #column-1 {
     max-width: 230px;
 }
+
 
 .selected-row {
     background-color: #cce5ff;
@@ -252,7 +281,8 @@ input {
 .button-container {
     position: fixed;
     bottom: 10px; 
-    right: 155px; 
+    right: 87px; 
+    margin-bottom: 10px;
 }
 
 .button {
@@ -268,7 +298,7 @@ input {
     cursor: pointer;
     text-decoration: none;
     margin-top: 40px;
-}
+}   
 
 .button:hover {
     background-color: var(--sideColor);
@@ -308,6 +338,8 @@ input {
     margin-left: 0%;
     margin-bottom: 0;
     margin-top: 30px;
+    max-height: 480px;
+    overflow: auto;
 }
 
 .input-item {
@@ -472,9 +504,10 @@ h4 {
     text-align: start;
 }
 
-/*----------------------------*/
+/*------------diagnostics--------------*/
 .diagnostics-container {
-    overflow: auto;
+    margin: 0;
+    padding: 0;
 }
 
 .diagnostics-container .table-header {
@@ -517,10 +550,17 @@ h4 {
     background-color: var(--packet4Color);
 }
 
+.packet-row.type-5 {
+    background-color: var(--packetExceptionColor);
+    color: rgb(246, 42, 42);
+    color: white;
+}
+
 .packet-row:hover {
     background-color: var(--sideColor);
     color: white;
 }
+
 
 .diagnostics-container .packet-row .column {
     display: flex;
@@ -529,16 +569,17 @@ h4 {
 }
 
 .diagnose-button {
-    margin-right: -100px;
-    margin-bottom: 8px;
+    margin-right: -30px;
+    margin-bottom: -2px;
     position: relative;
 }
 
 .bottom-container {
     display: flex;
     flex-direction: row;
-    height: 150px;
+    height: 100px;
     margin-left: -20px;
+    margin-bottom: 0;
 }
 
 .control-container {
@@ -626,16 +667,34 @@ h4 {
     display: block; 
 }
 
+.selected {
+    background-color: var(--sideColor);
+    color: white;
+}
 
-/*--------diags details--------*/
-.diagnose-details-button {
-    margin-right: -320px;
-    margin-bottom: 10px;
-    position: relative;
+.packet-error {
+    display: flex;
+    justify-content: center;
+    font-size: 1rem;
+    color: rgb(249, 31, 31);
+    margin-left: -159px;
+ }
+
+ .packet-error-span {
+    text-align: center;
+    margin-left: 70px;
+ }
+
+/*--------packet details--------*/
+.packet-details-main-container {
+    padding: 20px 20px 0 20px;
 }
 
 .packet-details {
-    padding: 15px;
+    height: 520px;
+    overflow: auto;
+    padding: 0;
+    margin: 0;
 }
 
 .packet-detail {
@@ -646,6 +705,12 @@ h4 {
 .packet-detail-span {
     font-weight: light;
 }   
+
+.diagnose-details-button {
+    margin-right: -65px;
+    margin-bottom: 0px;
+    position: relative;
+}
 
 table {
     width: 100%;
@@ -658,27 +723,29 @@ td {
 }
 
 td:first-child {
-    width: 150px; /* Set a fixed width for the first column */
+    width: 150px; 
     font-weight: bold;
 }
 
+table tr,
+table td {
+    font-size: 0.9rem; 
+}
 .packet-details {
     margin-bottom: 20px;
 }
 
 .data-content {
-    height: 100%; /* Fill the container height */
-    overflow-y: auto; /* Add scrollbar if content overflows vertically */
+    height: 100%; 
 }
 
 .packet-details table .data {
     vertical-align: top;
 }
 
-.rawData-row {
-    
+.packet-details-main-container .button-container{
+    background-color: white;
 }
-
 
 /*------scroll-bar-------------*/
 ::-webkit-scrollbar {

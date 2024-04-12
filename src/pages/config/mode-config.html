@@ -23,33 +23,33 @@
 
         <div class="config-content">
             <h2>Configure Operation Mode</h2>
-            <div class="tabs">
-                <ul class="nav nav-tabs">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Port1</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Port2</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="#">Port3</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" aria-disabled="true">Port4</a>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="checkbox-list">
-                <div class="checkbox-list-item">
-                    <input type="radio" id="radio1" name="mode" class="radio-input">
-                    <label for="radio1" class="radio-label">RTU Server Mode</label>
+            <div class="mode-config-container">
+                <div class="tabs">
+                    <ul class="nav nav-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Port1</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Port2</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link " href="#">Port3</a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="checkbox-list-item">
-                    <input type="radio" id="radio2" name="mode" class="radio-input">
-                    <label for="radio2" class="radio-label">RTU Client Mode</label>
+    
+                <div class="checkbox-list">
+                    <div class="checkbox-list-item">
+                        <input type="radio" id="radio1" name="mode" class="radio-input">
+                        <label for="radio1" class="radio-label">RTU Server Mode</label>
+                    </div>
+                    <div class="checkbox-list-item">
+                        <input type="radio" id="radio2" name="mode" class="radio-input">
+                        <label for="radio2" class="radio-label">RTU Client Mode</label>
+                    </div>
                 </div>
             </div>
+         
             <div class="button-container">
                 <a href="serial-config.html">
                     <button class="button left-button" id="next-button">Next</button>

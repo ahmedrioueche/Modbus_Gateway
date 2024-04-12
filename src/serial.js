@@ -10,8 +10,8 @@ const STOP_SIGNAL = [0x44, 0x55, 0x66, 0xBB];
 const configStartIndex = CONFIG_HEADER.length;
 const configBuffToSend = [];
 const MIN_CONFIG_SIZE = 18;
-const PACKET_IDENTIFIER_LENGTH = 3
-const PACKET_IDENTIFIER = [0x61, 0x62, 0x63]
+const MB_PACKET_IDENTIFIER_LENGTH = 3
+const MB_PACKET_IDENTIFIER = [0x61, 0x62, 0x63]
 
 function getConfigData(configBuffer) {
     console.log("configBuffer", configBuffer);
@@ -94,13 +94,12 @@ function usbSendConfigData(configBuffToSend, deviceId){
 }
 
 function usbSendStartSignal(openedDevice){
-    const receiveBuffer = [];
+
     const [idVendor, idProduct] = [openedDevice.deviceDescriptor.idVendor, openedDevice.deviceDescriptor.idProduct];
     const device = findByIds(Number(idVendor), Number(idProduct));
 
     if (device) {
         usbStart(device, START_SIGNAL);
-        console.log("receiveBuffer START", receiveBuffer);
     } else {
         console.log("Error: couldn't find device");
     }
@@ -145,7 +144,6 @@ let interface;
 function usbStart(device, START_SIGNAL){
 
     if(device){
-        
         device.open();
 
         interface = device.interfaces[0];
@@ -175,28 +173,28 @@ function usbStart(device, START_SIGNAL){
 }
 
 function usbStop(device) {
+    console.log("stop")
     if(device){
         interface.endpoint(ENDPOINT_IN).stopPoll();
         interface.release();
     }
 }
 
-
 function usbHandleReceivedData(buffer){
  
     const packetBuffer = []
-    if(isDataPacket(buffer)){
-        for(let i=0; i<buffer.length - PACKET_IDENTIFIER_LENGTH; i++){
-            packetBuffer[i] = buffer[PACKET_IDENTIFIER_LENGTH + i];
+    if(isDataMBPacket(buffer)){
+        for(let i=0; i<buffer.length - MB_PACKET_IDENTIFIER_LENGTH; i++){
+            packetBuffer[i] = buffer[MB_PACKET_IDENTIFIER_LENGTH + i];
         }
     }
     process.emit("data", packetBuffer);
 }
 
-function isDataPacket(buffer){
+function isDataMBPacket(buffer){
 
-    for(let i=0; i<PACKET_IDENTIFIER_LENGTH; i++){
-        if(buffer[i] !== PACKET_IDENTIFIER[i])
+    for(let i=0; i<MB_PACKET_IDENTIFIER_LENGTH; i++){
+        if(buffer[i] !== MB_PACKET_IDENTIFIER[i])
             return false;
     }
     return true;
@@ -211,11 +209,9 @@ function insertIPIntoArray(ipAddress, array, startIndex) {
 module.exports.getConfigData = getConfigData;
 module.exports.usbSendStartSignal = usbSendStartSignal;
 module.exports.usbSendStopSignal = usbSendStopSignal;
+module.exports.usbStop = usbStop;
 
 //TODO
 //fix FREERTOS issue!
 //fix Modbus part
-//handle exceptions
-//set password
 //update settings window
-//add help window

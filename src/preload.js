@@ -1,6 +1,16 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('mainAPI', {
+
+    getUserData: () => 
+        ipcRenderer.invoke("getUserData"),
+
+    saveUserData: (userData) => 
+        ipcRenderer.send("saveUserData", userData),
+
+    validatePassword: (password) => 
+        ipcRenderer.invoke("validatePassword", password),
+
     createSearchWindow: () => 
         ipcRenderer.send('createSearchWindow'),
 
@@ -18,6 +28,7 @@ contextBridge.exposeInMainWorld('mainAPI', {
 
     resizeWindow: () => 
         ipcRenderer.send('resizeWindow'),
+
 
     createSettingsWindow: () => 
         ipcRenderer.send('createSettingsWindow'),

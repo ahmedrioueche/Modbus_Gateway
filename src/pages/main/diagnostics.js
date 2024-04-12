@@ -12,32 +12,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     })      
 
-    
-    const startButtonEl = document.getElementById("start");
-    const stopButtonEl = document.getElementById("stop");
-
-    function startButtonClickHandler() {
-        window.serialAPI.sendStartSignal(device);
-    
-        startButtonEl.classList.add("play-button-disabled");
-        startButtonEl.removeEventListener("click", startButtonClickHandler);
-    
-        stopButtonEl.classList.remove("stop-button-disabled");
-        stopButtonEl.addEventListener("click", stopButtonClickHandler);
-    }
-    
-    function stopButtonClickHandler() {
-        window.serialAPI.sendStopSignal(device);
-    
-        stopButtonEl.classList.add("stop-button-disabled");
-        stopButtonEl.removeEventListener("click", stopButtonClickHandler);
-    
-        startButtonEl.classList.remove("play-button-disabled");
-        startButtonEl.addEventListener("click", startButtonClickHandler);
-    }
-
-    startButtonEl.addEventListener("click", startButtonClickHandler);
-
     let packetsBuffer = []; let startTime; 
     window.serialAPI.getPacketData(recPacket => {
         if(!startTime){
@@ -46,93 +20,109 @@ document.addEventListener("DOMContentLoaded", async () => {
         const relativeArrivalTime = ((Date.now() - startTime)/1000).toFixed(6);
 
         let packetDataObj = {};
-        console.log( recPacket.length);
         let recPacketLength = recPacket.length; 
         const type = recPacket[0];
+        const functionCode = recPacket[2];
 
-        switch (type) {
-            case 1: // SOURCE = RTU CLIENT
-                packetDataObj = {
-                    "packetSource": "RTU Client",
-                    "packetDestination": "RTU Server",
-                    "Slave ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} (${recPacket[1]})`,
-                    "Function Code": `${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[2]})`,
-                    "Starting Address": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} ${(recPacket[4] < 16 ? '0' : '')}${recPacket[4].toString(16).toUpperCase()} (${recPacket[3]} ${recPacket[4]})`,
-                    "Quantity": `${(recPacket[5] < 16 ? '0' : '')}${recPacket[5].toString(16).toUpperCase()} ${(recPacket[6] < 16 ? '0' : '')}${recPacket[6].toString(16).toUpperCase()} (${recPacket[5]} ${recPacket[6]})`,
-                    "CRC": `${(recPacket[recPacketLength - 2] < 16 ? '0' : '')}${recPacket[recPacketLength - 2].toString(16).toUpperCase()} ${(recPacket[recPacketLength - 1] < 16 ? '0' : '')}${recPacket[recPacketLength - 1].toString(16).toUpperCase()} (${recPacket[recPacketLength - 2]} ${recPacket[recPacketLength - 1]})`
-                };
-                break;
-        
-            case 2: // SOURCE = RTU SERVER
-                packetDataObj = {
-                    "packetSource": "RTU Server",
-                    "packetDestination": "RTU Client",
-                    "Slave ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} (${recPacket[1]})`,
-                    "Function Code": `${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[2]})`,
-                    "Bytes To Follow": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} (${recPacket[3]})`,
-                    "Data": `${recPacket.slice(4, recPacketLength - 2).map(byte => (byte < 16 ? '0' : '') + byte.toString(16).toUpperCase()).join(' ')} (${recPacket.slice(4, recPacketLength - 2).join(' ')})`, // Convert each byte to hexadecimal
-                    "CRC": `${(recPacket[recPacketLength - 2] < 16 ? '0' : '')}${recPacket[recPacketLength - 2].toString(16).toUpperCase()} ${(recPacket[recPacketLength - 1] < 16 ? '0' : '')}${recPacket[recPacketLength - 1].toString(16).toUpperCase()} (${recPacket[recPacketLength - 2]} ${recPacket[recPacketLength - 1]})`
-                };
-                break;
-        
-            case 3: // SOURCE TCP CLIENT
-                packetDataObj = {
-                    "packetSource": "TCP Client",
-                    "packetDestination": "TCP Server",
-                    "Transaction ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} ${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[1]} ${recPacket[2]})`,
-                    "Protocol ID": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} ${(recPacket[4] < 16 ? '0' : '')}${recPacket[4].toString(16).toUpperCase()} (${recPacket[3]} ${recPacket[4]})`,
-                    "Message Length": `${(recPacket[5] < 16 ? '0' : '')}${recPacket[5].toString(16).toUpperCase()} ${(recPacket[6] < 16 ? '0' : '')}${recPacket[6].toString(16).toUpperCase()} (${recPacket[5]} ${recPacket[6]})`,
-                    "Unit ID": `${(recPacket[7] < 16 ? '0' : '')}${recPacket[7].toString(16).toUpperCase()} (${recPacket[7]})`,
-                    "Function Code": `${(recPacket[8] < 16 ? '0' : '')}${recPacket[8].toString(16).toUpperCase()} (${recPacket[8]})`,
-                    "Starting Address": `${(recPacket[9] < 16 ? '0' : '')}${recPacket[9].toString(16).toUpperCase()} ${(recPacket[10] < 16 ? '0' : '')}${recPacket[10].toString(16).toUpperCase()} (${recPacket[9]} ${recPacket[10]})`,
-                    "Quantity": `${(recPacket[11] < 16 ? '0' : '')}${recPacket[11].toString(16).toUpperCase()} (${recPacket[11]})`
-                };
-                break;
-        
-            case 4: // SOURCE TCP SERVER
-                packetDataObj = {
-                    "packetSource": "TCP Server",
-                    "packetDestination": "TCP Client",
-                    "Transaction ID": `${(recPacket[1] < 16 ? '0' : '')}${recPacket[1].toString(16).toUpperCase()} ${(recPacket[2] < 16 ? '0' : '')}${recPacket[2].toString(16).toUpperCase()} (${recPacket[1]} ${recPacket[2]})`,
-                    "Protocol ID": `${(recPacket[3] < 16 ? '0' : '')}${recPacket[3].toString(16).toUpperCase()} ${(recPacket[4] < 16 ? '0' : '')}${recPacket[4].toString(16).toUpperCase()} (${recPacket[3]} ${recPacket[4]})`,
-                    "Message Length": `${(recPacket[5] < 16 ? '0' : '')}${recPacket[5].toString(16).toUpperCase()} ${(recPacket[6] < 16 ? '0' : '')}${recPacket[6].toString(16).toUpperCase()} (${recPacket[5]} ${recPacket[6]})`,
-                    "Unit ID": `${(recPacket[7] < 16 ? '0' : '')}${recPacket[7].toString(16).toUpperCase()} (${recPacket[7]})`,
-                    "Function Code": `${(recPacket[8] < 16 ? '0' : '')}${recPacket[8].toString(16).toUpperCase()} (${recPacket[8]})`,
-                    "Data": `${recPacket.slice(9, recPacketLength).map(byte => byte.toString(16).toUpperCase()).join(' ')} (${recPacket.slice(9, recPacketLength).join(' ')})` // Convert each byte to hexadecimal and uppercase
-                }
-            }
-        
-        //organize packet data
-        const packetDestination = (type === 1 || type === 2) ? `${packetDataObj["packetDestination"]} ID = ${packetDataObj["Slave ID"]}` :
-                          (type === 3 && mbMode === "RTU Server Mode") ? `${packetDataObj["packetDestination"]} IP = ${remoteIP}` :
-                          (type === 3 || type === 4) ? `${packetDataObj["packetDestination"]} IP = ${networkIP}` :
-                          packetDataObj["packetDestination"];
-
-        const packetSource = (type === 3 && mbMode === "RTU Server Mode") ? `${packetDataObj["packetSource"]} IP = ${networkIP}` :
-                            (type === 4 && mbMode === "RTU Server Mode") ? `${packetDataObj["packetSource"]} IP = ${remoteIP}` :
-                            packetDataObj["packetSource"];
-
-        
-        const packet = {
-            type: type,
-            number: packetsBuffer.length + 1,
-            time: relativeArrivalTime,
-            source: packetSource,
-            destination: packetDestination,
-            length: recPacketLength - 1, 
-            rawData: recPacket.slice(1).map(byte => (byte < 16 ? '0' : '') + byte.toString(16).toUpperCase()).join(' '),
-            packetData: packetDataObj,
+        if(type === 14) {//0xE error
+            handleError(recPacket[1], relativeArrivalTime); //error type
         }
-
-        //add packet to packetBuffer
-        packetsBuffer.push(packet);
-        //create packet ui
-        createPacketUI(packet);
+        else {
+            let basePacketDataObj = {
+                "packetSource": "",
+                "packetDestination": "",
+                "Slave ID": formatField(recPacket[1]),
+                "Function Code": formatField(recPacket[2]),
+                "Exception Code": functionCode > 128 ? formatField(recPacket[3]) : "",
+                "CRC": formatTwoByteValue(recPacket[recPacketLength - 2], recPacket[recPacketLength - 1])
+            };
         
-    })
+            switch (type) {
+                case 1: // SOURCE = RTU CLIENT
+                    basePacketDataObj.packetSource = "RTU Client";
+                    basePacketDataObj.packetDestination = "RTU Server";
+            
+                    if (recPacketLength > 6 && functionCode < 128) { //If not an exception (128 = 0x80)
+                        basePacketDataObj["Starting Address"] = formatTwoByteValue(recPacket[3], recPacket[4]);
+                        basePacketDataObj["Quantity"] = formatTwoByteValue(recPacket[5], recPacket[6]);
+                    }
+                    break;
+            
+                case 2: // SOURCE = RTU SERVER
+                    basePacketDataObj.packetSource = "RTU Server";
+                    basePacketDataObj.packetDestination = "RTU Client";
+            
+                    if (recPacketLength > 6 && functionCode < 128) {
+                        basePacketDataObj["Bytes To Follow"] = formatField(recPacket[3]);
+                        basePacketDataObj["Data"] = formatData(recPacket.slice(4, recPacketLength - 2));
+                    }
+                    break;
+            
+                case 3: // SOURCE TCP CLIENT
+                    basePacketDataObj.packetSource = "TCP Client";
+                    basePacketDataObj.packetDestination = "TCP Server";
+            
+                    if (recPacketLength > 6 && functionCode < 128) {
+                        basePacketDataObj = {
+                            ...basePacketDataObj,
+                            "Transaction ID": formatTwoByteValue(recPacket[1], recPacket[2]),
+                            "Protocol ID": formatTwoByteValue(recPacket[3], recPacket[4]),
+                            "Message Length": formatTwoByteValue(recPacket[5], recPacket[6]),
+                            "Unit ID": formatField(recPacket[7]),
+                            "Function Code": formatField(recPacket[8]),
+                            "Starting Address": formatTwoByteValue(recPacket[9], recPacket[10]),
+                            "Quantity": formatField(recPacket[11])
+                        };
+                    }
+                    break;
+            
+                case 4: // SOURCE TCP SERVER
+                    basePacketDataObj.packetSource = "TCP Server";
+                    basePacketDataObj.packetDestination = "TCP Client";
+            
+                    if (recPacketLength > 6 && functionCode < 128) {
+                        basePacketDataObj = {
+                            ...basePacketDataObj,
+                            "Transaction ID": formatTwoByteValue(recPacket[1], recPacket[2]),
+                            "Protocol ID": formatTwoByteValue(recPacket[3], recPacket[4]),
+                            "Message Length": formatTwoByteValue(recPacket[5], recPacket[6]),
+                            "Unit ID": formatField(recPacket[7]),
+                            "Function Code": formatField(recPacket[8]),
+                            "Data": formatData(recPacket.slice(9, recPacketLength-2))
+                        };
+                    }
+                    break;
+            }
+            packetDataObj = basePacketDataObj;
+            
+            //organize packet data
+            const packetDestination = (type === 1) ? `${packetDataObj["packetDestination"]} ID = ${packetDataObj["Slave ID"]}` :
+            (type === 3 && mbMode === "RTU Server Mode") ? `${packetDataObj["packetDestination"]} IP = ${remoteIP}` :
+            (type === 3 || type === 4) ? `${packetDataObj["packetDestination"]} IP = ${networkIP}` :
+            packetDataObj["packetDestination"];
 
-    document.getElementById("save").addEventListener("click", ()=> {
-        window.serialAPI.sendPackets(packetsBuffer);
+            const packetSource = (type === 2) ? `${packetDataObj["packetSource"]} ID = ${packetDataObj["Slave ID"]}` : (type === 3 && mbMode === "RTU Server Mode") ? `${packetDataObj["packetSource"]} IP = ${networkIP}` :
+            (type === 4 && mbMode === "RTU Server Mode") ? `${packetDataObj["packetSource"]} IP = ${remoteIP}` :
+            packetDataObj["packetSource"];
+
+            const myRawData = recPacket.slice(1).map(byte => (byte < 16 ? '0' : '') + byte.toString(16).toUpperCase()).join(' ');
+            const rawData = functionCode > 128 ? myRawData + " Exception!" : myRawData;
+            const packet = {
+                type: type,
+                number: packetsBuffer.length + 1,
+                time: relativeArrivalTime,
+                source: packetSource,
+                destination: packetDestination,
+                length: recPacketLength - 1, 
+                rawData: rawData,
+                packetData: packetDataObj,
+            }
+
+            //add packet to packetBuffer
+            packetsBuffer.push(packet);
+            //create packet ui
+            createPacketUI(packet);
+        }
     })
 
     function createPacketUI(packet){
@@ -147,6 +137,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
         packetEl.setAttribute("class", "packet-row");
         packetEl.setAttribute("id", "packet");
+        
         colorPacketRow(packet, packetEl);
         packetEl.addEventListener("click", ()=>{
             window.serialAPI.savePacketData(packet);
@@ -159,6 +150,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             element.setAttribute("id", `column-${index+1}`);
         });
         packetContainer.appendChild(packetEl); 
+        packetEl.scrollIntoView({ behavior: 'auto', block: 'start' });
         packetElements.forEach((element, index) => {
             const propertyName = Object.keys(packet)[index+1]; // Get property name from object
             let propertyValue = packet[propertyName]; // Access property value by name
@@ -175,11 +167,82 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
     
-    document.getElementById("trash").addEventListener("click", ()=> {
-        cleanPacketsContainer();
-        packetsBuffer.length = 0;
-        startTime = null;
-    })
+    function colorPacketRow(packet, packetEl){
+        if(packet.length > 2 && packet.packetData && packet.packetData["Exception Code"]){
+            packetEl.classList.add('type-5');
+            return;
+        }
+        switch(packet.type){
+            case 1:
+                packetEl.classList.add('type-1');
+                break;  
+            case 2:
+                packetEl.classList.add('type-2');
+                break;
+            case 3:
+                packetEl.classList.add('type-3');
+                break;
+            case 4:
+                packetEl.classList.add('type-4');
+                break;
+            default:
+                packetEl.classList.add('default');
+        }
+    }
+    function handleError(errorType, arrivalTime){
+        let error = "ERROR: Gateway Failed to communicate with ";
+        switch(errorType){
+            case 225: //0xE1 RTU_CLIENT_ERROR
+                error += "RTU Client"
+                break;
+            case 226: //0xE1 RTU_SERVER_ERROR
+                error += "RTU Server"
+                break;
+            case 227: //0xE1 TCP_CLIENT_ERROR
+                error += "TCP Client"
+                break;
+            case 228: //0xE1 TCP_SERVER_ERROR
+               error += "TCP Server"
+                break;
+        }
+        const packet =  {
+            number: packetsBuffer.length + 1,
+            time: arrivalTime,
+            error: error,
+        }
+        packetsBuffer.push(packet);
+        createErrorPacketUI(packet);
+    }
+
+    function createErrorPacketUI(packet){
+        const packetContainer = document.getElementById("packet-container");
+        const packetEl = document.createElement("div");
+        const packetErrorText = document.createElement("span");
+        const numberEl = document.createElement("div");
+        const timeEl = document.createElement("div");
+
+        packetEl.setAttribute("class", "packet-row");
+        packetEl.classList.add("packet-error");
+
+        numberEl.setAttribute("class", "column");
+        numberEl.setAttribute("id", "column-1");
+
+        timeEl.setAttribute("class", "column");
+        timeEl.setAttribute("id", "column-2");
+
+        packetErrorText.setAttribute("class", "packet-error-span");
+        packetErrorText.textContent = packet.error;
+        packetEl.style.backgroundColor = "rgb(246, 42, 42)";
+        packetEl.style.color = "white";
+
+        numberEl.innerHTML = packet.number;   
+        timeEl.innerHTML = packet.time;
+
+        packetEl.appendChild(numberEl);
+        packetEl.appendChild(timeEl);
+        packetEl.appendChild(packetErrorText);
+        packetContainer.appendChild(packetEl);
+    }
   
     const searchIcon = document.querySelector(".search img");
     const searchBarForm = document.querySelector(".diag-filter");
@@ -191,7 +254,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         if(isFilterOn){
             cleanPacketsContainer();
             packetsBuffer.forEach(packet => {
-                createPacketUI(packet);
+                console.log("packet", packet)
+                console.log("packet length", packet.length)
+                if(packet.error)
+                    createErrorPacketUI(packet);
+                else
+                    createPacketUI(packet);
             })
             isFilterOn = false;
         }
@@ -218,29 +286,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         
         cleanPacketsContainer();
         filteredPacketBuffer.forEach(packet => {
-            createPacketUI(packet);
+            console.log("packet", packet)
+            console.log("packet length", packet.length)
+            if(packet.error)
+               createErrorPacketUI(packet);
+            else
+              createPacketUI(packet);
         })
     })
-    
-
-    function colorPacketRow(packet, packetEl){
-        switch(packet.type){
-            case 1:
-                packetEl.classList.add('type-1');
-                break;
-            case 2:
-                packetEl.classList.add('type-2');
-                break;
-            case 3:
-                packetEl.classList.add('type-3');
-                break;
-            case 4:
-                packetEl.classList.add('type-4');
-                break;
-            default:
-                packetEl.classList.add('default');
-        }
-    }
 
     function cleanPacketsContainer(){
         const packets = document.querySelectorAll(".packet-row");
@@ -249,10 +302,64 @@ document.addEventListener("DOMContentLoaded", async () => {
         })
     }
 
+    const startButtonEl = document.getElementById("start");
+    const stopButtonEl = document.getElementById("stop");
+
+    function startButtonClickHandler() {
+        window.serialAPI.sendStartSignal(device);
+    
+        startButtonEl.classList.add("play-button-disabled");
+        startButtonEl.removeEventListener("click", startButtonClickHandler);
+    
+        stopButtonEl.classList.remove("stop-button-disabled");
+        stopButtonEl.addEventListener("click", stopButtonClickHandler);
+    }
+    
+    function stopButtonClickHandler() {
+        window.serialAPI.sendStopSignal(device);
+    
+        stopButtonEl.classList.add("stop-button-disabled");
+        stopButtonEl.removeEventListener("click", stopButtonClickHandler);
+    
+        startButtonEl.classList.remove("play-button-disabled");
+        startButtonEl.addEventListener("click", startButtonClickHandler);
+    }
+
+    startButtonEl.addEventListener("click", startButtonClickHandler);
+    
+    
+  
+
+    function formatField(value) {
+        return `${(value < 16 ? '0' : '')}${value.toString(16).toUpperCase()}`;
+    }
+    
+    function formatTwoByteValue(byte1, byte2) {
+        const decimalValue = (byte1 << 8) | byte2;
+        return `${formatField(byte1)} ${formatField(byte2)} (${decimalValue})`;
+    }
+    
+    function formatAddress(byte1, byte2) {
+        return formatTwoByteValue(byte1, byte2);
+    }
+    
+    function formatData(dataArray) {
+        return `${dataArray.map(byte => formatField(byte)).join(' ')} (${dataArray.join(' ')})`;
+    }
+    
+    document.getElementById("trash").addEventListener("click", ()=> {
+        cleanPacketsContainer();
+        packetsBuffer.length = 0;
+        startTime = null;
+    })
+
+    document.getElementById("save").addEventListener("click", ()=> {
+        window.serialAPI.sendPackets(packetsBuffer);
+    })
+
     document.getElementById("close-button").addEventListener("click", ()=> {
         window.mainAPI.closeDiagnosticsWindow();
     })
-
 });
 
 //TODO:

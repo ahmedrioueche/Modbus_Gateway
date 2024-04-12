@@ -1,25 +1,27 @@
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron');
 const path = require('path');
-const { getConfigData, usbSendStartSignal, usbSendStopSignal } = require('./serial.js');
+const { getConfigData, usbSendStartSignal, usbSendStopSignal, usbStop } = require('./serial.js');
 const { usb } = require('usb');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
 const { EventEmitter } = require('stream');
+const { userInfo } = require('os');
+const bcrypt = require('bcrypt');
 
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
-let isPasswordSet = true;
 
+let isPasswordSet = true ;
 let mainWidth = 800;
 let mainHeight = 900;
 /*---------------main window------------------*/
 let mainWindow; let startPage;
 const createMainWindow = () => {
   if (isPasswordSet)
-    startPage = 'index.html';
+    startPage = 'login.html';
   else
-    startPage = path.join(__dirname, 'src', 'pages', 'main', 'main.html');
+    startPage = "pages/main/main.html";
     mainWindow = createWindow(mainWindow, mainWidth, mainHeight, startPage, false, false);
 };
 
@@ -79,7 +81,6 @@ module.exports.closeSearchWindow = closeSearchWindow;
 let configWindow;
 function createConfigWindow() {
   configWindow = createWindow(configWindow, mainWidth, mainHeight, 'pages/config/general-config.html', false, false)
-  
 }
 
 function closeConfigWindow() {
@@ -101,7 +102,7 @@ module.exports.closeConfigWindow = closeConfigWindow;
 /*--------------settings window---------------------- */
 let settingsWindow;
 function createSettingsWindow() {
-  settingsWindow = createWindow(settingsWindow, sideWidth, sideHeight + 200, 'pages/main/settings.html', false, false)
+  settingsWindow = createWindow(settingsWindow, sideWidth, sideHeight + 360, 'pages/main/settings.html', false, false)
 }
 
 function closeSettingsWindow() {
@@ -130,17 +131,16 @@ function closeDiagnosticsWindow() {
 ipcMain.on('createDiagnosticsWindow', () => {
   createDiagnosticsWindow();
 });
+
 ipcMain.on('closeDiagnosticsWindow', () => {
   closeDiagnosticsWindow();
 });
-module.exports.createDiagnosticsWindow = createDiagnosticsWindow;
-module.exports.closeDiagnosticsWindow = closeDiagnosticsWindow;
-
 
 /*----------------Packet details window----------------------*/
 let packetDetailsWindow;
 function createPacketDetailsWindow() {
-  packetDetailsWindow = createWindow(packetDetailsWindow, 500, 615, 'pages/main/packetDetails.html', false, true)
+  closePacketDetailsWindow(packetDetailsWindow);
+  packetDetailsWindow = createWindow(packetDetailsWindow, 500, 650, 'pages/main/packetDetails.html', false, true)
 }
 
 function closePacketDetailsWindow() {
@@ -173,7 +173,7 @@ function createWindow(window, width, height, htmlFile, resizable, allowDuplicate
 
     window.loadFile(path.join(__dirname, htmlFile));
 
-    window.webContents.openDevTools();
+    //window.webContents.openDevTools();
 
     window.on('will-resize', () => {
       resizeHandler(window, width, height, resizable);
@@ -218,15 +218,93 @@ function resizeHandler(window, winWidth, winHeight, disableResize) {
 }
 
 function closeWindow(window) {
-  if (window) {
-    window.close();
-    window = null;
+  try {
+    if (window) {
+      window.close();
+      window = null;
+    }
   }
+  catch (error){
+    console.log(error)
+  }
+  
 }
 
 function resizeWindow(window) {
   window.setSize(sideWidth, window.getBounds().height - 25, true);
 }
+
+/*----------------------------User Data------------------------------*/
+let defaultPassword;
+
+ipcMain.handle("getUserData", () => {
+  return loadUserData();
+});
+
+ipcMain.on("saveUserData", async (event, updatedUserData) => {
+  const hashedPassword = await hashPassword(updatedUserData.password);
+  updatedUserData.password = hashedPassword;
+  userData = updatedUserData;
+  saveUserData(userData);
+});
+
+ipcMain.handle("validatePassword", async (event, password) => {
+  let match = false;
+  userData = await loadUserData();
+
+  try {
+    const result = await bcrypt.compare(password, userData.password);
+    if (result) {
+        match = true;
+        console.log("Password is valid");
+    } else {
+        // Passwords do not match
+        console.log("Password is invalid");
+    }
+  } catch (error) {
+    // Handle error
+    console.error("Error comparing passwords:", error);
+  }
+
+  console.log("match", match)
+  return match;
+});
+
+async function hashDefaultPass() {
+  defaultPassword = await hashPassword("admin");
+}
+
+hashDefaultPass().then(() => {
+}).catch(error => {
+  console.error("Error hashing default password:", error);
+});
+
+async function loadUserData() {
+  try {
+    const data = fs.readFileSync('userData.json');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("Error loading user data:", error);
+    return {
+      username: 'admin',
+      password: defaultPassword, // Use defaultPassword here
+    };
+  }
+}
+
+function saveUserData(userData) {
+  try {
+    fs.writeFileSync('userData.json', JSON.stringify(userData));
+  } catch (error) {
+    console.error("Error saving user data:", error);
+  }
+}
+
+async function hashPassword(password) {
+  const saltRounds = 10; // Number of salt rounds for bcrypt
+  return await bcrypt.hash(password, saltRounds);
+}
+
 /*-------------------------------------------------------------------*/
 
 ipcMain.on('getConfigData', (event, configBuffer) => {
@@ -276,6 +354,11 @@ process.on("data", function(packetBuffer) {
   diagnosticsWindow.webContents.send("getPacketData", packetBuffer)
 })
 
+if(diagnosticsWindow){
+  diagnosticsWindow.on('closed', () => {
+    usbSendStopSignal(openedDevice);
+  });
+}
 /*------------------save window--------------------------*/
 let dialogOpened = false; 
 ipcMain.on("sendPacketsToSave", (event, packets)=>{

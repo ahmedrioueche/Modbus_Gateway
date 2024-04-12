@@ -43,12 +43,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             newErrorDiv.classList.add("error");
             newErrorDiv.textContent = "Please fill in this field";
             slaveIdInputItem.appendChild(newErrorDiv);
+            newErrorDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
             dataValid = false;
         } else if (!isValidInput(data)) {
             const newErrorDiv = document.createElement("div");
             newErrorDiv.classList.add("error");
             newErrorDiv.textContent = "Please check the integrity of the data";
             slaveIdInputItem.appendChild(newErrorDiv);
+            newErrorDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
             dataValid = false;
         }
         return dataValid;

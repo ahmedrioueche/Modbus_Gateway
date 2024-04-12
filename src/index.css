@@ -17,6 +17,10 @@ body {
   --clickColor: rgb(0, 34, 255);
 }
 
+.username-error {
+  display: none;
+}
+
 .login-form,
 title {
   display: flex;
@@ -33,6 +37,15 @@ title {
   padding: 20px;
   max-width: 400px;
   margin: 13% auto;
+}
+
+.username-container,
+.password-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .input-box {
@@ -72,4 +85,11 @@ title {
 .button:active {
   background-color: var(--clickColor);
   box-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
+}
+
+.error {
+  font-size: 0.9rem;
+  margin-bottom: 12px ;
+  font-weight: light;
+  color: red;
 }
