@@ -33,9 +33,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById("next-button").addEventListener("click", () => {
         saveSelectedMode();
+        window.location.href = "serial-config.html";
     })
     document.getElementById("previous-button").addEventListener("click", () => {
         saveSelectedMode();
+        window.location.href = "general-config.html";
     })
 });
 

@@ -7,11 +7,14 @@ const ENDPOINT_IN = 0x81;
 const CONFIG_HEADER = [0xAA, 0xBB, 0xCC, 0xDD];
 const START_SIGNAL = [0xFF, 0x33, 0xCC, 0x55];
 const STOP_SIGNAL = [0x44, 0x55, 0x66, 0xBB];
+const FACTORY_RESET_SIGNAL = [0xF, 0xA, 0xC];
 const configStartIndex = CONFIG_HEADER.length;
 const configBuffToSend = [];
 const MIN_CONFIG_SIZE = 18;
-const MB_PACKET_IDENTIFIER_LENGTH = 3
-const MB_PACKET_IDENTIFIER = [0x61, 0x62, 0x63]
+const MB_PACKET_IDENTIFIER_LENGTH = 3;
+const MB_PACKET_IDENTIFIER = [0x61, 0x62, 0x63];
+const ADMIN_CONFIG_HEADER = [0xA, 0xD, 0xE];
+const ADMIN_CONFIG_HEADER_LENGTH = 3;
 
 function getConfigData(configBuffer) {
     console.log("configBuffer", configBuffer);
@@ -119,6 +122,60 @@ function usbSendStopSignal(openedDevice){
     }
 }
 
+function usbSendAdminConfigData(openedDevice, configData) {
+
+    let dataToSend = structureAdminConfigDataPacket(configData);
+  
+    const [idVendor, idProduct] = [openedDevice.deviceDescriptor.idVendor, openedDevice.deviceDescriptor.idProduct];
+    const device = findByIds(Number(idVendor), Number(idProduct));
+
+    if (device) {
+        usbSendData(device, dataToSend);
+    } else {
+        console.log("Error: couldn't find device");
+    }
+}
+
+function structureAdminConfigDataPacket(configData){
+    console.log("configData", configData)
+
+    let dataToSend = [];
+    //append an identifier
+    for(let i = 0; i < ADMIN_CONFIG_HEADER_LENGTH; i++){
+        dataToSend[i] = ADMIN_CONFIG_HEADER[i];
+    }
+
+    const configSize = 18;
+    const networkIP = configData.networkIP;
+    const networkMask = configData.networkMask;
+    const networkGateway = configData.networkGateway;
+    const macAddress = configData.macAddress;
+
+    dataToSend[ADMIN_CONFIG_HEADER_LENGTH] = configSize;
+    insertIPIntoArray(networkIP, dataToSend, ADMIN_CONFIG_HEADER_LENGTH + 1);
+    insertIPIntoArray(networkMask, dataToSend, ADMIN_CONFIG_HEADER_LENGTH + 5);
+    insertIPIntoArray(networkGateway, dataToSend, ADMIN_CONFIG_HEADER_LENGTH + 9);
+
+    for(let i = ADMIN_CONFIG_HEADER_LENGTH + 13; i < ADMIN_CONFIG_HEADER_LENGTH + 19; i++){
+        dataToSend[i] = macAddress[i];
+    }
+
+    return dataToSend;
+}
+
+
+function usbSendFactoryResetSignal(openedDevice){
+
+    const [idVendor, idProduct] = [openedDevice.deviceDescriptor.idVendor, openedDevice.deviceDescriptor.idProduct];
+    const device = findByIds(Number(idVendor), Number(idProduct));
+
+    if (device) {
+        usbSendData(device, FACTORY_RESET_SIGNAL);
+    } else {
+        console.log("Error: couldn't find device");
+    }
+}
+
 function usbSendData(device, data) {
     try {
         device.open();
@@ -133,7 +190,6 @@ function usbSendData(device, data) {
             } else {
                 console.log('Data sent successfully');
             }
-
         }); 
     } catch (error) {
         console.error('Error sending data:', error);
@@ -160,15 +216,26 @@ function usbStart(device, START_SIGNAL){
 
         }); 
 
-        interface.endpoint(ENDPOINT_IN).startPoll(3, 100);
-        interface.endpoint(ENDPOINT_IN).on('data', data => {
-            buffer = Array.from(data);
-            console.log("receiveBuffer", buffer );
-            usbHandleReceivedData(buffer);
-        });
+        try{
+            interface.endpoint(ENDPOINT_IN).startPoll(3, 100);
+        }
+        catch(err) {
+            console.log("USB poll failed", err);
+        }
+      
+        try{
+            interface.endpoint(ENDPOINT_IN).on('data', data => {
+                buffer = Array.from(data);
+                console.log("receiveBuffer", buffer );
+                usbHandleReceivedData(buffer);
+            });
+        }
+        catch(err){
+            console.log("USB data reception failed", err);
+        }
     }
     else {
-        console.log("WTF IS DEVICE")
+        console.log("WTF IS DEVICE");
     }
 }
 
@@ -210,7 +277,8 @@ module.exports.getConfigData = getConfigData;
 module.exports.usbSendStartSignal = usbSendStartSignal;
 module.exports.usbSendStopSignal = usbSendStopSignal;
 module.exports.usbStop = usbStop;
-
+module.exports.usbSendAdminConfigData = usbSendAdminConfigData
+module.exports.usbSendFactoryResetSignal = usbSendFactoryResetSignal
 //TODO
 //fix FREERTOS issue!
 //fix Modbus part

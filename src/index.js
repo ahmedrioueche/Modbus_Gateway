@@ -1,18 +1,17 @@
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron');
 const path = require('path');
-const { getConfigData, usbSendStartSignal, usbSendStopSignal, usbStop } = require('./serial.js');
+const { getConfigData, usbSendStartSignal, usbSendStopSignal, usbSendAdminConfigData, usbSendFactoryResetSignal} = require('./serial.js');
 const { usb } = require('usb');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
-const { EventEmitter } = require('stream');
-const { userInfo } = require('os');
 const bcrypt = require('bcrypt');
+require('dotenv').config();
 
 if (require('electron-squirrel-startup')) {
   app.quit();
-}
+}   
 
-let isPasswordSet = true ;
+let isPasswordSet = false;
 let mainWidth = 800;
 let mainHeight = 900;
 /*---------------main window------------------*/
@@ -45,118 +44,84 @@ app.on('activate', () => {
 ipcMain.on('closeMainWindow', () => {
   closeMainWindow();
 });
-module.exports.closeMainWindow = closeMainWindow;
-
 
 /*---------------search window------------------*/
 let searchWindow;
 let sideWidth = 450;
 let sideHeight = 285
-function createSearchWindow() {
-  searchWindow = createWindow(searchWindow, sideWidth, sideHeight, 'pages/main/search.html', false, false)
-}
-
-function resizeSearchWindow() {
-  resizeWindow(searchWindow);
-}
-
-function closeSearchWindow() {
-  closeWindow(searchWindow);
-}
 
 ipcMain.on('createSearchWindow', () => {
-  createSearchWindow();
+  searchWindow = createWindow(searchWindow, sideWidth, sideHeight, 'pages/main/search.html', false, false)
 });
 ipcMain.on('closeSearchWindow', () => {
-  closeSearchWindow();
+  closeWindow(searchWindow);
 });
-ipcMain.on('resizeWindow', () => {
-  resizeSearchWindow();
-});
-module.exports.createSearchWindow = createSearchWindow;
-module.exports.closeSearchWindow = closeSearchWindow;
-
 
 /*---------------configuration window------------------*/
 let configWindow;
-function createConfigWindow() {
-  configWindow = createWindow(configWindow, mainWidth, mainHeight, 'pages/config/general-config.html', false, false)
+function createConfigWindow(isAdmin) { //is it user config or admin config
+  console.log("isAdmin", isAdmin)
+  if(isAdmin)
+    configWindow = createWindow(configWindow, mainWidth, mainHeight, 'pages/config/admin-config.html', false, false)
+  else
+    configWindow = createWindow(configWindow, mainWidth, mainHeight, 'pages/config/general-config.html', false, false)
 }
 
-function closeConfigWindow() {
-  closeWindow(configWindow);
-}
-
-ipcMain.on('createConfigWindow', () => {
-  createConfigWindow();
+ipcMain.on('createConfigWindow', (event, isAdmin) => {
+  createConfigWindow(isAdmin);
 });
 
 ipcMain.on('closeConfigWindow', () => {
-  closeConfigWindow();
+  closeWindow(configWindow);
 });
-
-module.exports.createConfigWindow = createConfigWindow;
-module.exports.closeConfigWindow = closeConfigWindow;
-
 
 /*--------------settings window---------------------- */
 let settingsWindow;
-function createSettingsWindow() {
-  settingsWindow = createWindow(settingsWindow, sideWidth, sideHeight + 360, 'pages/main/settings.html', false, false)
-}
-
-function closeSettingsWindow() {
-  closeWindow(settingsWindow);
-}
 
 ipcMain.on('createSettingsWindow', () => {
-  createSettingsWindow();
+  settingsWindow = createWindow(settingsWindow, sideWidth, sideHeight + 360, 'pages/main/settings.html', false, false)
 });
 ipcMain.on('closeSettingsWindow', () => {
-  closeSettingsWindow();
+  closeWindow(settingsWindow);
 });
-module.exports.createSettingsWindow = createSettingsWindow;
-module.exports.closeSettingsWindow = closeSettingsWindow;
 
 /*----------------Diagnostics window----------------------*/
 let diagnosticsWindow;
-function createDiagnosticsWindow() {
-  diagnosticsWindow = createWindow(diagnosticsWindow, mainWidth, mainHeight, 'pages/main/diagnostics.html', false, true)
-}
-
-function closeDiagnosticsWindow() {
-  closeWindow(diagnosticsWindow);
-}
 
 ipcMain.on('createDiagnosticsWindow', () => {
-  createDiagnosticsWindow();
+  diagnosticsWindow = createWindow(diagnosticsWindow, mainWidth, mainHeight, 'pages/main/diagnostics.html', false, true)
 });
 
 ipcMain.on('closeDiagnosticsWindow', () => {
-  closeDiagnosticsWindow();
+  closeWindow(diagnosticsWindow);
 });
 
 /*----------------Packet details window----------------------*/
 let packetDetailsWindow;
-function createPacketDetailsWindow() {
-  closePacketDetailsWindow(packetDetailsWindow);
-  packetDetailsWindow = createWindow(packetDetailsWindow, 500, 650, 'pages/main/packetDetails.html', false, true)
-}
 
 function closePacketDetailsWindow() {
   closeWindow(packetDetailsWindow);
 }
 ipcMain.on('createPacketDetailsWindow', () => {
-  createPacketDetailsWindow();
+  closePacketDetailsWindow(packetDetailsWindow);
+  packetDetailsWindow = createWindow(packetDetailsWindow, 500, 650, 'pages/main/packetDetails.html', false, true)
 });
 
 ipcMain.on('closePacketDetailsWindow', () => {
   closePacketDetailsWindow();
 });
-module.exports.createPacketDetailsWindow = createPacketDetailsWindow;
-module.exports.closePacketDetailsWindow = closePacketDetailsWindow;
 
-/*-------------------------------------------------------*/
+/*-------------------------config dialog window--------------------------------*/
+let configDialogWindow;
+ipcMain.on("createConfigDialogWindow", () => {
+  configDialogWindow = createWindow(configDialogWindow, 500, 200, "pages/config/factory-reset.html",false, false);
+})
+
+ipcMain.on("closeConfigDialogWindow", () => {
+  closeWindow(configDialogWindow);
+})
+
+/*----------------------------------------------------------------------------*/
 function createWindow(window, width, height, htmlFile, resizable, allowDuplicates) {
   if ((!window || window.isDestroyed()) || allowDuplicates ) {
     window = new BrowserWindow({
@@ -173,7 +138,7 @@ function createWindow(window, width, height, htmlFile, resizable, allowDuplicate
 
     window.loadFile(path.join(__dirname, htmlFile));
 
-    //window.webContents.openDevTools();
+    window.webContents.openDevTools();
 
     window.on('will-resize', () => {
       resizeHandler(window, width, height, resizable);
@@ -235,68 +200,100 @@ function resizeWindow(window) {
 }
 
 /*----------------------------User Data------------------------------*/
-let defaultPassword;
+let adminDefaultPassword;
+let manufacturerDefaultPassword;
 
-ipcMain.handle("getUserData", () => {
-  return loadUserData();
+ipcMain.handle("getUserData", (username) => {
+  return loadUserData(username);
 });
 
 ipcMain.on("saveUserData", async (event, updatedUserData) => {
-  const hashedPassword = await hashPassword(updatedUserData.password);
-  updatedUserData.password = hashedPassword;
+  const hashedPassword = await hashPassword(updatedUserData.admin.password);
+  updatedUserData.admin.password = hashedPassword;
   userData = updatedUserData;
   saveUserData(userData);
 });
 
-ipcMain.handle("validatePassword", async (event, password) => {
-  let match = false;
-  userData = await loadUserData();
-
-  try {
-    const result = await bcrypt.compare(password, userData.password);
-    if (result) {
-        match = true;
-        console.log("Password is valid");
-    } else {
-        // Passwords do not match
+ipcMain.handle("validateUserData", async (event, username, password) => {
+  
+  userData = await loadUserData(username);
+  if(userData){
+    try {
+      if(userData.username !== username)
+        return -1;
+      const result = await bcrypt.compare(password, userData.password);
+      if (!result) {
         console.log("Password is invalid");
-    }
-  } catch (error) {
-    // Handle error
-    console.error("Error comparing passwords:", error);
-  }
+        return -2;
+      } else {  
+          console.log("Password is valid");
+          if(username === process.env.manufacturerDefaultUsername)
+            return 0xCF;
 
-  console.log("match", match)
-  return match;
+          return 0;
+      }
+    } catch (error) {
+      console.error("Error comparing passwords:", error);
+    }  
+  }
+  else return -1;
 });
 
 async function hashDefaultPass() {
-  defaultPassword = await hashPassword("admin");
+  adminDefaultPassword = await hashPassword("admin");
+  manufacturerDefaultPassword = await hashPassword(process.env.manufacturerDefaultPassword);
 }
 
 hashDefaultPass().then(() => {
 }).catch(error => {
-  console.error("Error hashing default password:", error);
+  console.error("Error hashing password:", error);
 });
 
-async function loadUserData() {
+async function loadUserData(username) {
   try {
     const data = fs.readFileSync('userData.json');
-    return JSON.parse(data);
+    const userData = JSON.parse(data);
+    console.log("username", username)
+    console.log("manifacturerDefaultUsername", process.env.manufacturerDefaultUsername)
+    if (username === process.env.manufacturerDefaultUsername) {
+      return userData.manufacturer || {
+        username: process.env.manifacturerDefaultUsername,
+        password: manufacturerDefaultPassword // Use manufacturer password 
+      };
+    } else {
+      return userData.admin || {
+        username: 'admin',
+        password: adminDefaultPassword // Use defaultPassword 
+      };
+    }
   } catch (error) {
     console.error("Error loading user data:", error);
+    // If an error occurs while loading user data, return default admin credentials
     return {
-      username: 'admin',
-      password: defaultPassword, // Use defaultPassword here
+      username: null,
+      password: null 
     };
   }
 }
 
-function saveUserData(userData) {
+function saveUserData(adminData) {
   try {
-    fs.writeFileSync('userData.json', JSON.stringify(userData));
+      // Read existing data from userData.json file
+      let existingData = {};
+      try {
+          existingData = JSON.parse(fs.readFileSync('userData.json'));
+      } catch (error) {
+          // If userData.json doesn't exist or is invalid JSON, just use an empty object
+      }
+
+      // Update the admin part with the new adminData
+      existingData.admin = adminData;
+
+      // Write the updated data back to userData.json file
+      fs.writeFileSync('userData.json', JSON.stringify(existingData));
+      console.log("Admin data saved successfully.");
   } catch (error) {
-    console.error("Error saving user data:", error);
+      console.error("Error saving admin data:", error);
   }
 }
 
@@ -305,6 +302,41 @@ async function hashPassword(password) {
   return await bcrypt.hash(password, saltRounds);
 }
 
+let userDataFileCreated = false;
+app.on('ready', async () => {
+  // Create the userData.json file if it hasn't been created yet
+  if (!userDataFileCreated) {
+      await createDefaultUserDataFile(); // Await the creation of the file
+      userDataFileCreated = true; // Update the flag to indicate the file has been created
+  }
+});
+
+// Function to create the userData.json file with default values
+async function createDefaultUserDataFile() {
+  const userDataFilePath = 'userData.json';
+  try {
+      // Await the hashing of default passwords
+      await hashDefaultPass();
+      
+      // Create default user data
+      const defaultUserData = {
+          manufacturer: {
+              username: process.env.manufacturerDefaultUsername,
+              password: manufacturerDefaultPassword
+          },
+          admin: {
+              username: 'admin',
+              password: adminDefaultPassword
+          }
+      };
+      
+      // Write default user data to userData.json file
+      fs.writeFileSync(userDataFilePath, JSON.stringify(defaultUserData));
+      console.log("userData.json created with default values.");
+  } catch (error) {
+      console.error("Error creating userData.json:", error);
+  }
+}
 /*-------------------------------------------------------------------*/
 
 ipcMain.on('getConfigData', (event, configBuffer) => {
@@ -334,7 +366,7 @@ ipcMain.handle("getOpenDevice", () => { return openedDevice });
 
 module.exports.openedDevice = openedDevice;
 
-/*-------------------------------------*/
+/*------------------------------------------------------------*/
 let packetData;
 ipcMain.on("savePacketData", (event, packet) => {
   packetData = packet;
@@ -359,6 +391,16 @@ if(diagnosticsWindow){
     usbSendStopSignal(openedDevice);
   });
 }
+
+ipcMain.on("sendAdminConfigData", (event, configData) => {
+  usbSendAdminConfigData(openedDevice, configData);
+})
+
+ipcMain.on("sendFactoryResetSignal", () => {
+  usbSendFactoryResetSignal(openedDevice);
+})
+
+
 /*------------------save window--------------------------*/
 let dialogOpened = false; 
 ipcMain.on("sendPacketsToSave", (event, packets)=>{
@@ -423,7 +465,6 @@ ipcMain.on("sendPacketsToSave", (event, packets)=>{
   });
   
 });
-
 
 async function writePacketsToJson(packets, filePath) {
     await fs.promises.writeFile(filePath, JSON.stringify(packets, null, 2));

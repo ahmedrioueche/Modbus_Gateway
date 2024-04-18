@@ -7,11 +7,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         VOID_PASSWORD: "void password",
     }
 
-    const userInfo = await window.mainAPI.getUserData("getUserData");
     const form = document.querySelector(".login-form");
     const loginButton = document.getElementById('login-button');
-    let dataValid;
- 
     
     loginButton.addEventListener('click', (e) => {
         e.preventDefault();
@@ -29,59 +26,62 @@ document.addEventListener('DOMContentLoaded', async () => {
                 errorDiv.remove();
             })  
         }
-        let status = await validateUserInfo(username, password, userInfo);
-        if(status === Status.VALID)
-            window.location.href = "pages/main/main.html";
 
-        else if (status === Status.VOID_USERNAME){
+        let result = await validateUserInfo(username, password);
+        console.log("result", result)
+        if(result.status === Status.VALID)
+            if(result.result === 0xCF){
+                window.location.href = "pages/main/main_admin.html"; 
+            }
+            else if(result.result === 0){
+                window.location.href = "pages/main/main.html";
+            }
+
+        else if (result.status === Status.VOID_USERNAME){
             const newErrorDiv = document.createElement("div");
             newErrorDiv.classList.add("error");
             newErrorDiv.textContent = "Please fill in this field";
             usernameCon.appendChild(newErrorDiv);
-            dataValid = false;
         }
 
-        else if (status === Status.INVALID_USERNAME){
+        else if (result.status === Status.INVALID_USERNAME){
             const newErrorDiv = document.createElement("div");
             newErrorDiv.classList.add("error");
             newErrorDiv.textContent = "Invalid username";
             usernameCon.appendChild(newErrorDiv);
-            dataValid = false;
         }
         
-        else if (status === Status.VOID_PASSWORD){
+        else if (result.status === Status.VOID_PASSWORD){
             const newErrorDiv = document.createElement("div");
             newErrorDiv.classList.add("error");
             newErrorDiv.textContent = "Please fill in this field";
             passwordCon.appendChild(newErrorDiv);
-            dataValid = false;
         }   
-        else if (status === Status.INVALID_PASSWORD){
+        else if (result.status === Status.INVALID_PASSWORD){
             const newErrorDiv = document.createElement("div");
             newErrorDiv.classList.add("error");
             newErrorDiv.textContent = "Invalid password";
             passwordCon.appendChild(newErrorDiv);
-            dataValid = false;
         }    
     }
 
-    async function validateUserInfo(username, password, userInfo){
+    async function validateUserInfo(username, password){
 
-        if(userInfo){
             if(!username)
                 return Status.VOID_USERNAME;
 
-            if(username !== userInfo.username)
-                return Status.INVALID_USERNAME;
-            
             if(!password)
                 return Status.VOID_PASSWORD;
 
-            let result = await window.mainAPI.validatePassword(password);
-            if (result !== true)
+            let result = await window.mainAPI.validateUserData(username, password);
+            console.log("result", result);
+            if (result === -1)
+                return Status.INVALID_USERNAME;
+
+            if(result === -2)
                 return Status.INVALID_PASSWORD;
-        }
-        return Status.VALID;
+
+        return {status: Status.VALID, result: result};
     }
 
     async function validatePassword(password){

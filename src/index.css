@@ -1,11 +1,6 @@
 
-@font-face {
-  font-family: 'Open Sans';
-  src: url('src/assets/fonts/OpenSans-Medium.ttf') format('truetype');
-}
-
 body {
-  font-family: 'Open Sans', 'sans-serif';
+  font-family: 'sans-serif';
   margin: auto;
   max-width: 38rem;
   padding: 2rem;

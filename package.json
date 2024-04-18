@@ -23,6 +23,7 @@
     "amqplib": "^0.10.3",
     "bcrypt": "^5.1.1",
     "bulma": "^0.9.4",
+    "dotenv": "^16.4.5",
     "electromon": "^1.0.0",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.1.0",

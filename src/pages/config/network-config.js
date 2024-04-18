@@ -53,6 +53,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    document.getElementById("previous-button").addEventListener('click', () => {
+        window.location.href = "serial-config.html"
+    })
+
     async function sendConfigData(){
         
         let configBuffer = []

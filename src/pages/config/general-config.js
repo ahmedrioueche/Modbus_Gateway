@@ -1,26 +1,21 @@
 document.addEventListener("DOMContentLoaded", async ()=> {
+    
+    let deviceId = await getConfigDeviceId();
+    let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
+    let defaultDeviceConfig = JSON.parse(localStorage.getItem('defaultDeviceConfig')) || [];
+    console.log("storedDevices", storedDevices);
 
-   //retreive deviceList from local storage
-   let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
-    //get device from serialAPI
-    let deviceId = await getConfigDevice();
-    document.getElementById("input1").value = deviceId;
-    //if device is in deviceList
+    let deviceMacAddress, deviceName;
+    
     const existingDeviceIndex = storedDevices.findIndex(device => device.id === deviceId);
     if (existingDeviceIndex !== -1) {
-        document.getElementById("input2").value = storedDevices[existingDeviceIndex].name;
+
+        deviceMacAddress = storedDevices[existingDeviceIndex].macAddress;
+        deviceName = storedDevices[existingDeviceIndex].name;
+        document.getElementById("input2").value = deviceName;
     } 
-    
-    document.getElementById("next-button").addEventListener("click", () => {
-        //save device's name and id in deviceList in local storage
-        saveConfigDevice();
-        window.location.href = "mode-config.html"
-    });
-    
-    document.getElementById("cancel-button").addEventListener("click", () => {
-        window.mainAPI.closeConfigWindow();
-    })
-    
+
+    document.getElementById("input1").value = deviceId;
 
     function saveConfigDevice(){
         //save device's name and id in deviceList in local storage
@@ -38,19 +33,35 @@ document.addEventListener("DOMContentLoaded", async ()=> {
                 parity: "None",
                 stopBits: "1",
                 dataSize: "8",
-                slaveID: null,
-                networkIP: null,
-                networkMask: null,
-                networkGateway: null,
-                remoteIP: null,
+                macAddress: deviceMacAddress,
+                slaveID: defaultDeviceConfig.slaveID,
+                networkIP: defaultDeviceConfig.networkIP,
+                networkMask: defaultDeviceConfig.networkMask,
+                networkGateway: defaultDeviceConfig.networkGateway,
+                remoteIP: defaultDeviceConfig.remoteIP,
             });       
         }
         localStorage.setItem('devices', JSON.stringify(storedDevices));
     }
 
-    async function getConfigDevice(){
+    async function getConfigDeviceId(){
         const configDevice = await window.serialAPI.getOpenedDevice();
         const deviceId = `${configDevice.deviceDescriptor.idVendor}-${configDevice.deviceDescriptor.idProduct}`;
         return deviceId;
     }
+
+    document.getElementById("next-button").addEventListener("click", () => {
+        //save device's name and id in deviceList in local storage
+        saveConfigDevice();
+        window.location.href = "mode-config.html"
+    });
+    
+    document.getElementById("cancel-button").addEventListener("click", () => {
+        window.mainAPI.closeConfigWindow();
+    })
+    
+    document.getElementById("factory-reset-button").addEventListener("click", () => {
+        //open factory reset dialog window
+        window.mainAPI.createConfigDialogWindow();
+    })
 });

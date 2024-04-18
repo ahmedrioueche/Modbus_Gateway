@@ -1,6 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {   
-    const GATEWAY_ID = 3222; //usb vendor ID, should match the firmware
-
+document.addEventListener('DOMContentLoaded', () => {
+    const GATEWAY_ID = 3222;
     window.onload = getListConnectedDevices();
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
 
@@ -20,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const configureButton = document.getElementById("configure-button");
     const diagnoseButton = document.getElementById("diagnose-button");
-    
+
     let selectedDevice;
     function createUsbDeviceUI(usbDevice){
        const deviceId = `${usbDevice.deviceDescriptor.idVendor}-${usbDevice.deviceDescriptor.idProduct}`;
@@ -78,16 +77,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     configureButton.addEventListener("click", () => {
-        window.mainAPI.createConfigWindow(false); //not admin config
+        window.mainAPI.createConfigWindow(true); // admin config 
+        console.log("selectedDevice in main_admin", selectedDevice)
         window.serialAPI.saveOpenedDevice(selectedDevice); //save the device thats being configured
     });
-    
+
     diagnoseButton.addEventListener("click", () => {
         window.mainAPI.createDiagnosticsWindow();
         console.log("selectedDevice", selectedDevice)
         window.serialAPI.saveOpenedDevice(selectedDevice); //save the device thats being diagnosed
     })
-
+    
     document.getElementById("refresh-button").addEventListener("click", async () => {
         const connectedDevices = await window.serialAPI.getConnectedDevices();
         listConnectedDevices(connectedDevices); 
@@ -98,9 +98,11 @@ document.addEventListener('DOMContentLoaded', () => {
         window.mainAPI.closeMainWindow();
     })
 
-    document.getElementById("settings-button").addEventListener("click", () => {
-        window.mainAPI.createSettingsWindow();
-    })
+
+    async function getListConnectedDevices(){
+        const connectedDevices = await window.serialAPI.getConnectedDevices();
+        listConnectedDevices(connectedDevices);
+    }
 
     function listConnectedDevices(connectedDevices){
         connectedDevices.forEach(usbDevice => {
@@ -109,11 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 createUsbDeviceUI(usbDevice);
             }
         });
-    }
-
-    async function getListConnectedDevices(){
-        const connectedDevices = await window.serialAPI.getConnectedDevices();
-        listConnectedDevices(connectedDevices);
     }
     
     function isDeviceMyDevice(usbDevice){
@@ -124,4 +121,4 @@ document.addEventListener('DOMContentLoaded', () => {
     function isDeviceListed(deviceId){
         return document.getElementById(deviceId) !== null;
     }
-});
+})

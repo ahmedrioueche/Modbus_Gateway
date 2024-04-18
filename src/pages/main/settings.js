@@ -10,14 +10,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         VOID_NEW_PASSWORD: "void new password",
         VOID_CON_PASSWORD: "void confirm password"
     }
-    const userData = await window.mainAPI.getUserData();
+    //const userData = await window.mainAPI.getUserData();
     const container = document.querySelector(".settings-window")
     const saveButton = document.getElementById('save-button');
     const usernameCon = document.getElementById("username-container");
     const oldPasswordCon = document.getElementById("old-password-container");
     const newPasswordCon = document.getElementById("new-container");
     const confirmPassWordCon = document.getElementById("confirm-container");
-    document.getElementById('username').value = userData.username;
+    //document.getElementById('username').value = userData.username;
 
     saveButton.addEventListener('click', async () => {
         const errorDivs = container.querySelectorAll(".error");
@@ -34,8 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const newPassword = document.getElementById('new-password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
         let result = await handleUserData(username, oldPassword, newPassword, confirmPassword, userData);
-        console.log("username", username)
-        console.log("result", result)
+
         switch(result){
             case Status.VALID:
                 saveUserData(username, newPassword);
@@ -79,16 +78,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     });
 
-    async function handleUserData(username, oldPassword, newPassword, confirmPassword, userInfo){
+    async function handleUserData(username, oldPassword, newPassword, confirmPassword){
         console.log("username", username)
-        if(!username){
-            console.log("username if".username)
+        if(!username)
             return Status.VOID_USERNAME;
-        }
+
         if(!oldPassword)
             return Status.VOID_OLD_PASSWORD;
+
         if(!newPassword)
              return Status.VOID_NEW_PASSWORD;
+
         if(!confirmPassword)
             return Status.VOID_CON_PASSWORD;
 
@@ -97,10 +97,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             return result;
         }
 
-        result = await validatePassword(oldPassword);
-        if(result !== Status.VALID){
+        result = await validateUserData(usernamem, oldPassword);
+        if(result !== Status.VALID)
             return result;
-        }
+        
 
         result = checkPassword(newPassword);
         if(result !== Status.VALID){
@@ -116,16 +116,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function saveUserData(username, newPassword){
-        userData.username = username;
-        userData.password = newPassword;
-    
+        let userData = {
+            admin: {
+                username: username,
+                password: newPassword,
+            }
+        }
+        
         window.mainAPI.saveUserData(userData);
         window.mainAPI.closeSettingsWindow();
 
     }
 
-    async function validatePassword(oldPassword){
-       let result = await window.mainAPI.validatePassword(oldPassword);
+    async function validateUserData(username, oldPassword){
+       let result = await window.mainAPI.validateUserData(username, oldPassword);
        console.log("result in validatePassword", result)
        if(result !== true)
          return Status.INVALID_OLD_PASSWORD;

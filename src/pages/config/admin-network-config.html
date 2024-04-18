@@ -3,47 +3,49 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Configuration</title>
-    <link rel="stylesheet" />
+    <title>Admin Configuration</title>
     <link rel="stylesheet" href="../style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script defer src="network-config.js"></script>
+    <script defer src="admin-network-config.js"></script>
 </head>
 
 <body>
     <div class="container">
         <div class="sidebar">
             <ul>
-                <li class="clickable">General</li>
-                <li class="clickable">Mode</li>
-                <li class="clickable">Serial</li>
+                <li class="clickable">MAC address</li>
                 <li class="selected">Network</li>
             </ul>
         </div>
 
-        <div class="config-content">
-            <h2>Configure Network</h2>
+        <div class="config-container">
+            <h2>Network Configuration</h2>
 
             <div class="input-list">
                 <div class="input-item">
-                    <label class="input-label" for="input1">IP address</label>
+                    <label class="input-label" for="input1">Default IP address</label>
                     <input type="text" id="input1" class="input-field" placeholder="example:192.168.1.5">
                 </div>
 
                 <div class="input-item">
-                    <label class="input-label" for="input2">Netmask</label>
+                    <label class="input-label" for="input2">Default Netmask</label>
                     <input type="text" id="input2" class="input-field" placeholder="example:255.255.255.0">
                 </div>
 
                 <div class="input-item">
-                    <label class="input-label" for="input3">Gateway</label>
+                    <label class="input-label" for="input3">Default Gateway</label>
                     <input type="text" id="input3" class="input-field" placeholder="example:192.168.1.1">
                 </div>
             </div>
-            
+        </div>
+     
             <div class="button-container">
-                <button class="button left-button" id="save-button">save & exit</button>
-                <button class="button right-button" id="previous-button">Previous</button>
+                <a href="#">
+                    <button class="button left-button" id="save-button">Save & Exit</button>
+                </a>
+                <a href="#">
+                    <button class="button right-button" id="previous-button">Previous</button>
+                </a>
             </div>
         </div>
     </div>

@@ -8,14 +8,14 @@ contextBridge.exposeInMainWorld('mainAPI', {
     saveUserData: (userData) => 
         ipcRenderer.send("saveUserData", userData),
 
-    validatePassword: (password) => 
-        ipcRenderer.invoke("validatePassword", password),
+    validateUserData: (username, password) => 
+        ipcRenderer.invoke("validateUserData", username, password),
 
     createSearchWindow: () => 
         ipcRenderer.send('createSearchWindow'),
 
-    createConfigWindow: (device) => 
-        ipcRenderer.send('createConfigWindow', device),
+    createConfigWindow: (isAdmin) => 
+        ipcRenderer.send('createConfigWindow', isAdmin),
         
     closeMainWindow: () => 
         ipcRenderer.send('closeMainWindow'),
@@ -28,7 +28,6 @@ contextBridge.exposeInMainWorld('mainAPI', {
 
     resizeWindow: () => 
         ipcRenderer.send('resizeWindow'),
-
 
     createSettingsWindow: () => 
         ipcRenderer.send('createSettingsWindow'),
@@ -47,6 +46,12 @@ contextBridge.exposeInMainWorld('mainAPI', {
 
     closePacketDetailsWindow: () => 
         ipcRenderer.send('closePacketDetailsWindow'),
+
+    createConfigDialogWindow: () => 
+        ipcRenderer.send('createConfigDialogWindow'),
+    
+    closeConfigDialogWindow: () => 
+        ipcRenderer.send('closeConfigDialogWindow'),
 
 });
 
@@ -86,6 +91,13 @@ contextBridge.exposeInMainWorld('serialAPI', {
   
     sendPackets: (packets) => 
         ipcRenderer.send("sendPacketsToSave", packets),
+    
+    sendAdminConfigData: (configData) => 
+        ipcRenderer.send('sendAdminConfigData', configData),
+
+    sendFactoryResetSignal: () => 
+        ipcRenderer.send('sendFactoryResetSignal'),
+
 });
 
 contextBridge.exposeInMainWorld('settingsAPI', {

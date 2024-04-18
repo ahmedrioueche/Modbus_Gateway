@@ -32,6 +32,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }  
     })
 
+    document.getElementById("previous-button").addEventListener('click', () => {
+        saveSerialData();
+        window.location.href = "mode-config.html"
+    })
+
     function checkData(data){
         let dataValid = true;
         const errorDiv = slaveIdInputItem.querySelector(".error");

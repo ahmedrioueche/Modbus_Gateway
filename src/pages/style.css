@@ -3,15 +3,9 @@
     padding: 0;
     box-sizing: border-box;
 }
-
-
-@font-face {
-    font-family: 'Open Sans';
-    src: url('../assets/fonts/OpenSans-Medium.ttf') format('truetype');
-}
   
 body {
-    font-family: 'Open Sans', 'sans-serif';
+    font-family: 'sans-serif';
     margin: 0;
     padding: 0;
     background-color: white;
@@ -59,6 +53,7 @@ body {
     flex-direction: row;
     margin: 0;
     padding: 0;
+
 }
 
 .settings-window .button-container .left-button {
@@ -69,7 +64,7 @@ body {
 
 .settings-window .button-container .right-button{
     margin: 0;
-    margin-right: -110px;
+    margin-right: -40px;
 }
 
 .config-content {
@@ -146,6 +141,8 @@ input {
     width: 400px;
 }
 
+.tabs
+
 .mode-config-container {
     margin-left: -20px;
 }
@@ -178,6 +175,10 @@ input {
     margin-left: -45%;
 }
 
+.radio-input:focus {
+    outline: none;
+}
+
 .checkbox-list-item {
     margin-left: 0;
 }
@@ -206,7 +207,7 @@ input {
     padding: 10px;
     padding-top: 0px;
     border-radius: 5px;
-    height: 100px;
+    overflow: auto;
 }
 
 .table-header,
@@ -220,8 +221,7 @@ input {
 }
 
 .table-rows {
-    height: 530px;
-    overflow: auto;
+    overflow: auto; 
 }
 
 .packet-row {
@@ -249,7 +249,6 @@ input {
 #column-1 {
     max-width: 230px;
 }
-
 
 .selected-row {
     background-color: #cce5ff;
@@ -313,6 +312,12 @@ input {
     box-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
 }
 
+.button:focus {
+    outline: none;
+    border: 1px solid var(--clickColor);
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
+}
+
 .button.left-button {
     margin-right: 160px;
 }
@@ -326,6 +331,10 @@ input {
     margin-top: 30px;
 }
 
+.factory-reset-button {
+    width: 60px;
+    margin-top: 10px;
+}
 
 /*-------input-box--------*/
 .input-list {
@@ -397,6 +406,14 @@ input {
     color: #fff;
 }
 
+.settings-window .select-field {
+    margin-top: 7px;
+}
+
+.settings-window h2 {
+    margin-left: 80px;
+}
+
 .search-box {
     width: 200px;
     margin-left: 50px;
@@ -424,7 +441,7 @@ input {
 }
 
 .error {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: bold;
     margin-top: 5px;
     color: var(--dangerColor);
@@ -442,6 +459,7 @@ input {
 .tabs {
     margin-left: 20px;
 }
+
 .nav-tabs {
     list-style: none;
     padding: 0;
@@ -463,6 +481,12 @@ input {
     border: 1px solid #ccc;
     border-radius: 5px 5px 0 0;
     cursor: auto;
+}
+
+.nav-link:focus{
+    outline: none;
+    border: 1px solid var(--clickColor);
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
 }
 
 .nav-link.active {
@@ -520,10 +544,12 @@ h4 {
 .packet-row .column:nth-child(1) {
     max-width: 50px !important;
 }
+
 .diagnostics-container .table-header .column:nth-child(2),
 .packet-row .column:nth-child(2) {
     max-width: 90px;
 }
+
 .diagnostics-container .table-header .column:nth-child(5),
 .packet-row .column:nth-child(5) {
     max-width: 90px;
@@ -560,7 +586,6 @@ h4 {
     background-color: var(--sideColor);
     color: white;
 }
-
 
 .diagnostics-container .packet-row .column {
     display: flex;
@@ -677,7 +702,7 @@ h4 {
     justify-content: center;
     font-size: 1rem;
     color: rgb(249, 31, 31);
-    margin-left: -159px;
+    margin-left: -202px;
  }
 
  .packet-error-span {
@@ -745,6 +770,60 @@ table td {
 
 .packet-details-main-container .button-container{
     background-color: white;
+}
+
+#macAddressInput {
+    margin-bottom: 5px;
+}
+
+/*--------admin-config---------*/
+
+.config-container {
+    margin-top: 25px;
+}
+
+.config-container h2 {
+    margin-left: 160px;
+    margin-bottom: 10px;
+ }
+
+.config-container .input-list{
+    margin-left: 80px;
+    width: 100%;
+}
+
+/*--------factory reset--------*/
+.factory-reset {
+
+    padding: 30px;
+}
+
+.factory-reset .button-container {
+    display: flex;
+    flex-direction: row;
+    margin-right: -40px;
+}
+
+.dialog-container {
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.dialog-container h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--mainColor)
+}
+
+.factory-reset .left-button {
+    margin-right: 180px;
+}
+ 
+.factory-reset .right-button {
+    margin-right: -10px
 }
 
 /*------scroll-bar-------------*/
