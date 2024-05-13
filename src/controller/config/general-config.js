@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", async ()=> {
         } else {
             storedDevices.push({ 
                 id: deviceId, 
+                manufId: defaultDeviceConfig.manufId, 
                 name: deviceName, 
                 mode: "RTU Server Mode",
                 baudrate: "9600",

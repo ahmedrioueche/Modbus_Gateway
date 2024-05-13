@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
+    let networkIP, remoteIP, mbMode;
     const device = await window.serialAPI.getOpenedDevice();
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
-    let networkIP, remoteIP, mbMode;
     storedDevices.forEach(storedDevice => {
         const deviceId = `${device.deviceDescriptor.idVendor}-${device.deviceDescriptor.idProduct}`;
         if(storedDevice.id === deviceId){
@@ -14,9 +14,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let packetsBuffer = []; let startTime; 
     window.serialAPI.getPacketData(recPacket => {
-        if(!startTime){
+        if(!startTime)
             startTime = Date.now();
-        }
+        
         const relativeArrivalTime = ((Date.now() - startTime)/1000).toFixed(6);
 
         let packetDataObj = {};
@@ -158,12 +158,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const lines = propertyValue.split("IP = ");
                 propertyValue = lines.join("<br>IP = ");
             }
-            element.innerHTML = propertyValue; // Set innerHTML to allow line breaks
+            element.innerHTML = propertyValue; 
             packetEl.appendChild(element);
         })
         const columns = document.querySelectorAll(".column");
         columns.forEach(column => {
-            column.style.fontSize = "0.8rem"; // Adjust the font size as needed
+            column.style.fontSize = "0.8rem"; 
         });
     }
     
@@ -189,6 +189,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 packetEl.classList.add('default');
         }
     }
+    
     function handleError(errorType, arrivalTime){
         let error = "ERROR: Gateway Failed to communicate with ";
         switch(errorType){
@@ -205,11 +206,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                error += "TCP Server"
                 break;
         }
+
         const packet =  {
             number: packetsBuffer.length + 1,
             time: arrivalTime,
             error: error,
         }
+
         packetsBuffer.push(packet);
         createErrorPacketUI(packet);
     }
@@ -248,6 +251,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const searchBarForm = document.querySelector(".diag-filter");
     const searchBar = document.getElementById("input");
     let isFilterOn = false;
+    let searchQuery;
+    let filteredPacketBuffer;
 
     searchIcon.addEventListener("click", () => {
         searchBarForm.classList.toggle("show-search");
@@ -269,10 +274,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchBarForm.addEventListener("submit", (e) => {
         e.preventDefault();
     });
-    
-    let searchQuery;
-    let filteredPacketBuffer;
-    
+
     searchBar.addEventListener("input", (e) => {
         e.preventDefault();
         filteredPacketBuffer = [];
@@ -327,9 +329,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     startButtonEl.addEventListener("click", startButtonClickHandler);
     
-    
-  
-
     function formatField(value) {
         return `${(value < 16 ? '0' : '')}${value.toString(16).toUpperCase()}`;
     }

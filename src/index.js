@@ -1,7 +1,8 @@
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron');
 const path = require('path');
-const { getConfigData, usbSendStartSignal, usbSendStopSignal, usbSendAdminConfigData, usbSendFactoryResetSignal} = require('./serial.js');
+const { getConfigData, usbSendStartSignal, usbSendStopSignal, usbSendAdminConfigData, usbSendFactoryResetSignal, usbStop} = require('./serial.js');
 const { usb } = require('usb');
+const { serialport } = require('serialport');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
 const bcrypt = require('bcrypt');
@@ -19,8 +20,8 @@ let mainWindow; let startPage;
 const createMainWindow = () => {
   if (isPasswordSet)
     startPage = 'login.html';
-  else
-    startPage = "pages/main/main.html";
+  else  
+    startPage = "views/main/main.html";
     mainWindow = createWindow(mainWindow, mainWidth, mainHeight, startPage, false, false);
 };
 
@@ -51,7 +52,7 @@ let sideWidth = 450;
 let sideHeight = 285
 
 ipcMain.on('createSearchWindow', () => {
-  searchWindow = createWindow(searchWindow, sideWidth, sideHeight, 'pages/main/search.html', false, false)
+  searchWindow = createWindow(searchWindow, sideWidth, sideHeight, 'views/main/search.html', false, false)
 });
 ipcMain.on('closeSearchWindow', () => {
   closeWindow(searchWindow);
@@ -62,9 +63,9 @@ let configWindow;
 function createConfigWindow(isAdmin) { //is it user config or admin config
   console.log("isAdmin", isAdmin)
   if(isAdmin)
-    configWindow = createWindow(configWindow, mainWidth, mainHeight, 'pages/config/admin-config.html', false, false)
+    configWindow = createWindow(configWindow, mainWidth, mainHeight, 'views/config/admin-config.html', false, false)
   else
-    configWindow = createWindow(configWindow, mainWidth, mainHeight, 'pages/config/general-config.html', false, false)
+    configWindow = createWindow(configWindow, mainWidth, mainHeight, 'views/config/general-config.html', false, false)
 }
 
 ipcMain.on('createConfigWindow', (event, isAdmin) => {
@@ -79,7 +80,7 @@ ipcMain.on('closeConfigWindow', () => {
 let settingsWindow;
 
 ipcMain.on('createSettingsWindow', () => {
-  settingsWindow = createWindow(settingsWindow, sideWidth, sideHeight + 360, 'pages/main/settings.html', false, false)
+  settingsWindow = createWindow(settingsWindow, sideWidth, sideHeight + 360, 'views/main/settings.html', false, false)
 });
 ipcMain.on('closeSettingsWindow', () => {
   closeWindow(settingsWindow);
@@ -89,11 +90,13 @@ ipcMain.on('closeSettingsWindow', () => {
 let diagnosticsWindow;
 
 ipcMain.on('createDiagnosticsWindow', () => {
-  diagnosticsWindow = createWindow(diagnosticsWindow, mainWidth, mainHeight, 'pages/main/diagnostics.html', false, true)
+  diagnosticsWindow = createWindow(diagnosticsWindow, mainWidth, mainHeight, 'views/diagnos/diagnostics.html', false, true)
 });
 
 ipcMain.on('closeDiagnosticsWindow', () => {
   closeWindow(diagnosticsWindow);
+  if(openedDevice)
+    usbStop(openedDevice);
 });
 
 /*----------------Packet details window----------------------*/
@@ -104,7 +107,7 @@ function closePacketDetailsWindow() {
 }
 ipcMain.on('createPacketDetailsWindow', () => {
   closePacketDetailsWindow(packetDetailsWindow);
-  packetDetailsWindow = createWindow(packetDetailsWindow, 500, 650, 'pages/main/packetDetails.html', false, true)
+  packetDetailsWindow = createWindow(packetDetailsWindow, 500, 650, 'views/diagnos/packetDetails.html', false, true)
 });
 
 ipcMain.on('closePacketDetailsWindow', () => {
@@ -114,7 +117,7 @@ ipcMain.on('closePacketDetailsWindow', () => {
 /*-------------------------config dialog window--------------------------------*/
 let configDialogWindow;
 ipcMain.on("createConfigDialogWindow", () => {
-  configDialogWindow = createWindow(configDialogWindow, 500, 200, "pages/config/factory-reset.html",false, false);
+  configDialogWindow = createWindow(configDialogWindow, 500, 200, "views/config/factory-reset.html",false, false);
 })
 
 ipcMain.on("closeConfigDialogWindow", () => {
@@ -138,7 +141,7 @@ function createWindow(window, width, height, htmlFile, resizable, allowDuplicate
 
     window.loadFile(path.join(__dirname, htmlFile));
 
-    window.webContents.openDevTools();
+    //window.webContents.openDevTools();
 
     window.on('will-resize', () => {
       resizeHandler(window, width, height, resizable);
@@ -202,9 +205,9 @@ function resizeWindow(window) {
 /*----------------------------User Data------------------------------*/
 let adminDefaultPassword;
 let manufacturerDefaultPassword;
-
-ipcMain.handle("getUserData", (username) => {
-  return loadUserData(username);
+let loggedinUsername;
+ipcMain.handle("getUserData", (loggedinUsername) => {
+  return loadUserData(loggedinUsername);
 });
 
 ipcMain.on("saveUserData", async (event, updatedUserData) => {
@@ -215,16 +218,18 @@ ipcMain.on("saveUserData", async (event, updatedUserData) => {
 });
 
 ipcMain.handle("validateUserData", async (event, username, password) => {
-  
+  loggedinUsername = username;
   userData = await loadUserData(username);
   if(userData){
     try {
       if(userData.username !== username)
         return -1;
+
       const result = await bcrypt.compare(password, userData.password);
       if (!result) {
         console.log("Password is invalid");
         return -2;
+
       } else {  
           console.log("Password is valid");
           if(username === process.env.manufacturerDefaultUsername)
@@ -264,7 +269,7 @@ async function loadUserData(username) {
       return userData.admin || {
         username: 'admin',
         password: adminDefaultPassword // Use defaultPassword 
-      };
+      };  
     }
   } catch (error) {
     console.error("Error loading user data:", error);

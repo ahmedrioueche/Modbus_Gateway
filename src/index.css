@@ -82,6 +82,12 @@ title {
   box-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
 }
 
+.button:focus {
+  outline: none;
+  border: 1px solid var(--clickColor);
+  box-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
+}
+
 .error {
   font-size: 0.9rem;
   margin-bottom: 12px ;

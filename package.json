@@ -6,11 +6,24 @@
   "main": "src/index.js",
   "scripts": {
     "start": "electronmon .",
-    "build": "",
+    "build": "electron-builder",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\""
+  },
+  "build": {
+    "appId": "MODBUS gateway manager",
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "uninstallDisplayName": "Uninstaller",
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "keywords": [],
   "author": {

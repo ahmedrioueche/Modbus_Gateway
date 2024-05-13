@@ -10,14 +10,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         VOID_NEW_PASSWORD: "void new password",
         VOID_CON_PASSWORD: "void confirm password"
     }
-    //const userData = await window.mainAPI.getUserData();
+    const userData = await window.mainAPI.getUserData();
     const container = document.querySelector(".settings-window")
     const saveButton = document.getElementById('save-button');
     const usernameCon = document.getElementById("username-container");
     const oldPasswordCon = document.getElementById("old-password-container");
     const newPasswordCon = document.getElementById("new-container");
     const confirmPassWordCon = document.getElementById("confirm-container");
-    //document.getElementById('username').value = userData.username;
+    document.getElementById('username').value = userData.username;
 
     saveButton.addEventListener('click', async () => {
         const errorDivs = container.querySelectorAll(".error");
@@ -97,10 +97,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             return result;
         }
 
-        result = await validateUserData(usernamem, oldPassword);
+        result = await validateUserData(username, oldPassword);
         if(result !== Status.VALID)
             return result;
-        
 
         result = checkPassword(newPassword);
         if(result !== Status.VALID){
@@ -125,7 +124,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         window.mainAPI.saveUserData(userData);
         window.mainAPI.closeSettingsWindow();
-
     }
 
     async function validateUserData(username, oldPassword){

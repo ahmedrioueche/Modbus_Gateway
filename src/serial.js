@@ -15,6 +15,7 @@ const MB_PACKET_IDENTIFIER_LENGTH = 3;
 const MB_PACKET_IDENTIFIER = [0x61, 0x62, 0x63];
 const ADMIN_CONFIG_HEADER = [0xA, 0xD, 0xE];
 const ADMIN_CONFIG_HEADER_LENGTH = 3;
+let isPollActive = false;
 
 function getConfigData(configBuffer) {
     console.log("configBuffer", configBuffer);
@@ -90,6 +91,7 @@ function usbSendConfigData(configBuffToSend, deviceId){
     const device = findByIds(Number(idVendor), Number(idProduct));
     if (device) {
         usbSendData(device, configBuffToSend);
+        usbStop(device);
     }
     else {
         console.log("Error: couldn't find device");
@@ -131,6 +133,7 @@ function usbSendAdminConfigData(openedDevice, configData) {
 
     if (device) {
         usbSendData(device, dataToSend);
+        usbStop(device);
     } else {
         console.log("Error: couldn't find device");
     }
@@ -197,52 +200,47 @@ function usbSendData(device, data) {
 }  
 
 let interface;
-function usbStart(device, START_SIGNAL){
+function usbStart(device, START_SIGNAL) {
+    if (!device) {
+        console.error("WTF IS DEVICE");
+        return;
+    }
 
-    if(device){
+    try {
         device.open();
-
         interface = device.interfaces[0];
         interface.claim();
 
         const dataToSend = Buffer.from(START_SIGNAL);
-
-        interface.endpoint(ENDPOINT_OUT).transfer(dataToSend, (error) => {
+        interface.endpoint(ENDPOINT_OUT).transfer(dataToSend, error => {
             if (error) {
                 console.error('Error sending data:', error);
             } else {
                 console.log('Data sent successfully');
             }
+        });
 
-        }); 
+        interface.endpoint(ENDPOINT_IN).startPoll(3, 100);
+        isPollActive = true;
 
-        try{
-            interface.endpoint(ENDPOINT_IN).startPoll(3, 100);
-        }
-        catch(err) {
-            console.log("USB poll failed", err);
-        }
-      
-        try{
-            interface.endpoint(ENDPOINT_IN).on('data', data => {
-                buffer = Array.from(data);
-                console.log("receiveBuffer", buffer );
-                usbHandleReceivedData(buffer);
-            });
-        }
-        catch(err){
-            console.log("USB data reception failed", err);
-        }
-    }
-    else {
-        console.log("WTF IS DEVICE");
+        interface.endpoint(ENDPOINT_IN).on('data', data => {
+            const buffer = Array.from(data);
+            console.log("receiveBuffer", buffer);
+            usbHandleReceivedData(buffer);
+        });
+    } catch (err) {
+        console.error("USB communication failed", err);
     }
 }
 
+
 function usbStop(device) {
     console.log("stop")
-    if(device){
-        interface.endpoint(ENDPOINT_IN).stopPoll();
+    if(device && interface){
+        if(isPollActive){
+            interface.endpoint(ENDPOINT_IN).stopPoll();
+            isPollActive = false;
+        }
         interface.release();
     }
 }
@@ -279,6 +277,8 @@ module.exports.usbSendStopSignal = usbSendStopSignal;
 module.exports.usbStop = usbStop;
 module.exports.usbSendAdminConfigData = usbSendAdminConfigData
 module.exports.usbSendFactoryResetSignal = usbSendFactoryResetSignal
+module.exports.usbStop = usbStop
+
 //TODO
 //fix FREERTOS issue!
 //fix Modbus part

@@ -14,8 +14,8 @@ body {
 
 :root {
     --mainColor: rgba(0, 0, 0, 0.9);
-    --sideColor: rgba(0, 110, 255, 0.995);
-    --clickColor: rgb(0, 34, 255);
+    --secondaryColor: rgba(0, 110, 255, 0.995);
+    --sideColor: rgb(0, 34, 255); 
     --dangerColor: rgba(248, 65, 65, 0.991);
     --hovercolor: rgba(92, 159, 246, 0.995);
     --packet1Color: rgb(211, 211, 234);
@@ -96,7 +96,7 @@ input {
 
 .sidebar {
     width: 30%;
-    background-color: var(--sideColor);
+    background-color: var(--secondaryColor);
     color: white;
     padding: 20px;
     box-sizing: border-box;
@@ -118,7 +118,7 @@ input {
 }
 
 .sidebar li.selected {
-    background-color: var(--clickColor);
+    background-color: var(--sideColor);
 }
 
 .config-content {
@@ -141,10 +141,12 @@ input {
     width: 400px;
 }
 
-.tabs
-
 .mode-config-container {
     margin-left: -20px;
+}
+
+.config-content.mode {
+    margin-left: 45px;
 }
 
 /*-----checkbox---------*/
@@ -189,7 +191,7 @@ input {
 
 .radio-input:checked+.radio-label {
     font-weight: bold;
-    color: var(--sideColor)
+    color: var(--secondaryColor)
 }
 
 /*--------------menu-----------*/
@@ -222,6 +224,10 @@ input {
 
 .table-rows {
     overflow: auto; 
+}
+
+.packet-container {
+    height: 535px;
 }
 
 .packet-row {
@@ -259,7 +265,7 @@ input {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-gap: 10px;
-    background-color: var(--sideColor);
+    background-color: var(--secondaryColor);
     padding: 10px;
     height: 50%;
     padding-left: 15%;
@@ -273,7 +279,7 @@ input {
 }
 
 .button.menu:hover {
-    background-color: var(--clickColor);
+    background-color: var(--sideColor);
 }
 
 /*--------button-------*/
@@ -300,7 +306,7 @@ input {
 }   
 
 .button:hover {
-    background-color: var(--sideColor);
+    background-color: var(--secondaryColor);
 }
 
 .button[disabled] {
@@ -308,13 +314,13 @@ input {
 }
 
 .button:active {
-    background-color: var(--clickColor);
+    background-color: var(--sideColor);
     box-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
 }
 
 .button:focus {
     outline: none;
-    border: 1px solid var(--clickColor);
+    border: 1px solid var(--sideColor);
     box-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
 }
 
@@ -352,7 +358,7 @@ input {
 }
 
 .input-item {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     display: flex;
     flex-direction: column;
     font-size: larger;
@@ -376,8 +382,8 @@ input {
 
 .input-field:focus {
     outline: none;
-    border-color: var(--sideColor);
-    box-shadow: 0 0 6px var(--sideColor);
+    border-color: var(--secondaryColor);
+    box-shadow: 0 0 6px var(--secondaryColor);
 }
 
 .select-field {
@@ -392,8 +398,8 @@ input {
 
 .select-field:focus {
     outline: none;
-    border-color: var(--sideColor);
-    box-shadow: 0 0 6px var(--sideColor);
+    border-color: var(--secondaryColor);
+    box-shadow: 0 0 6px var(--secondaryColor);
 }
 
 .select-field:active,
@@ -402,7 +408,7 @@ input {
 }
 
 .select-field option:checked {
-    background-color: var(--sideColor);
+    background-color: var(--secondaryColor);
     color: #fff;
 }
 
@@ -432,8 +438,8 @@ input {
 
 .input-box:focus {
     outline: none;
-    border-color: var(--sideColor);
-    box-shadow: 0 0 6px var(--sideColor);
+    border-color: var(--secondaryColor);
+    box-shadow: 0 0 6px var(--secondaryColor);
 }
 
 .search-items {
@@ -452,7 +458,7 @@ input {
 }
 
 .input-item.settings {
-    margin-bottom: 0;
+    margin-bottom: 0;       
 }
 
 /*-----------------------------------*/
@@ -485,7 +491,7 @@ input {
 
 .nav-link:focus{
     outline: none;
-    border: 1px solid var(--clickColor);
+    border: 1px solid var(--sideColor);
     box-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
 }
 
@@ -516,7 +522,7 @@ h4 {
 .progress-bar {
     height: 200%;
     width: 0;
-    background-color: var(--sideColor);
+    background-color: var(--secondaryColor);
     transition: width 2s;
 }
 
@@ -583,7 +589,7 @@ h4 {
 }
 
 .packet-row:hover {
-    background-color: var(--sideColor);
+    background-color: var(--secondaryColor);
     color: white;
 }
 
@@ -602,7 +608,7 @@ h4 {
 .bottom-container {
     display: flex;
     flex-direction: row;
-    height: 100px;
+    height: 200px;
     margin-left: -20px;
     margin-bottom: 0;
 }
@@ -644,7 +650,7 @@ h4 {
 }
 
 .play-button-disabled img {
-    content: url("../assets/images/play-disabled.png");
+    content: url("./assets/images/play-disabled.png");
     cursor: auto;
 }
 
@@ -658,7 +664,7 @@ h4 {
 }
 
 .stop-button-disabled img {
-    content: url("../assets/images/stop-disabled.png");
+    content: url("./assets/images/stop-disabled.png");
     cursor: auto;
 }
 
@@ -693,7 +699,7 @@ h4 {
 }
 
 .selected {
-    background-color: var(--sideColor);
+    background-color: var(--secondaryColor);
     color: white;
 }
 
@@ -832,7 +838,7 @@ table td {
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: var(--sideColor);
+    background-color: var(--secondaryColor);
     border-radius: 5px;
 }
 

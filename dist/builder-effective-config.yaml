@@ -1,0 +1,13 @@
+directories:
+  output: dist
+  buildResources: build
+appId: MODBUS gateway manager
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: true
+  uninstallDisplayName: Uninstaller
+  allowToChangeInstallationDirectory: true
+files: []
+electronVersion: 27.1.0

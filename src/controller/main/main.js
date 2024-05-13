@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {   
-    const GATEWAY_ID = 3222; //usb vendor ID, should match the firmware
+    const GATEWAY_ID = 0XDFA5;  //USB VENDOR ID
 
     window.onload = getListConnectedDevices();
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
@@ -117,8 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function isDeviceMyDevice(usbDevice){
-        //return true;
-        return usbDevice.deviceDescriptor.idVendor === GATEWAY_ID;
+        return true;
+       // return usbDevice.deviceDescriptor.idVendor === GATEWAY_ID;
     }
 
     function isDeviceListed(deviceId){

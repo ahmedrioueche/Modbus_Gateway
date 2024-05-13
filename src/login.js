@@ -24,64 +24,83 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (errorDivs) {
             errorDivs.forEach(errorDiv => {
                 errorDiv.remove();
-            })  
+            })
         }
 
-        let result = await validateUserInfo(username, password);
-        console.log("result", result)
-        if(result.status === Status.VALID)
-            if(result.result === 0xCF){
+        let validationResult = await validateUserInfo(username, password);
+
+        if(validationResult.status === Status.VALID){
+            if(validationResult.result === 0xCF){
                 window.location.href = "pages/main/main_admin.html"; 
             }
-            else if(result.result === 0){
+            else if(validationResult.result === 0){
                 window.location.href = "pages/main/main.html";
             }
+        }
 
-        else if (result.status === Status.VOID_USERNAME){
+        else if (validationResult.status === Status.VOID_USERNAME){
+            console.log("result.status", validationResult.status);
             const newErrorDiv = document.createElement("div");
             newErrorDiv.classList.add("error");
             newErrorDiv.textContent = "Please fill in this field";
             usernameCon.appendChild(newErrorDiv);
         }
 
-        else if (result.status === Status.INVALID_USERNAME){
+        else if (validationResult.status === Status.INVALID_USERNAME){
+            console.log("result.status", validationResult.status);
             const newErrorDiv = document.createElement("div");
             newErrorDiv.classList.add("error");
             newErrorDiv.textContent = "Invalid username";
             usernameCon.appendChild(newErrorDiv);
         }
         
-        else if (result.status === Status.VOID_PASSWORD){
+        else if (validationResult.status === Status.VOID_PASSWORD){
+            console.log("result.status", validationResult.status);
             const newErrorDiv = document.createElement("div");
             newErrorDiv.classList.add("error");
             newErrorDiv.textContent = "Please fill in this field";
             passwordCon.appendChild(newErrorDiv);
         }   
-        else if (result.status === Status.INVALID_PASSWORD){
+
+        else if (validationResult.status === Status.INVALID_PASSWORD){
+            console.log("result.status", validationResult.status);
             const newErrorDiv = document.createElement("div");
             newErrorDiv.classList.add("error");
             newErrorDiv.textContent = "Invalid password";
             passwordCon.appendChild(newErrorDiv);
         }    
     }
+    
 
     async function validateUserInfo(username, password){
 
-            if(!username)
-                return Status.VOID_USERNAME;
+        const validationResult = { status: Status.VALID, result: 0 }
 
-            if(!password)
-                return Status.VOID_PASSWORD;
+        if(!username){
+            validationResult.status = Status.VOID_USERNAME;
+            return validationResult;
+        }
 
-            let result = await window.mainAPI.validateUserData(username, password);
-            console.log("result", result);
-            if (result === -1)
-                return Status.INVALID_USERNAME;
+        if(!password){
+            validationResult.status = Status.VOID_PASSWORD;
+            return validationResult;
+        }
 
-            if(result === -2)
-                return Status.INVALID_PASSWORD;
+        let result = await window.mainAPI.validateUserData(username, password);
 
-        return {status: Status.VALID, result: result};
+        if (result === -1){
+            validationResult.status = Status.INVALID_USERNAME;
+            validationResult.result = result;
+            return validationResult;
+        }
+
+        if(result === -2){
+            validationResult.status = Status.INVALID_PASSWORD;
+            validationResult.result = result;
+            return validationResult;
+        }
+
+        return validationResult;
     }
 
     async function validatePassword(password){

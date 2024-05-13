@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const GATEWAY_ID = 3222;
+    const GATEWAY_ID = 1155; //USB VENDOR ID
+
     window.onload = getListConnectedDevices();
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
 
@@ -92,6 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const connectedDevices = await window.serialAPI.getConnectedDevices();
         listConnectedDevices(connectedDevices); 
         window.location.reload();
+    })
+
+    document.getElementById("settings-button").addEventListener("click", () => {
+        window.mainAPI.createSettingsWindow();
     })
 
     document.getElementById("exit-button").addEventListener("click", () => {
