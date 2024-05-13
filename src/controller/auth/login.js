@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         VOID_USERNAME: "void username",
         VOID_PASSWORD: "void password",
     }
-
+    
     const form = document.querySelector(".login-form");
     const loginButton = document.getElementById('login-button');
     
@@ -31,10 +31,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if(validationResult.status === Status.VALID){
             if(validationResult.result === 0xCF){
-                window.location.href = "pages/main/main_admin.html"; 
+                window.location.href = "../../views/main/main_admin.html"; 
             }
             else if(validationResult.result === 0){
-                window.location.href = "pages/main/main.html";
+                window.location.href = "../../views/main/main.html";
             }
         }
 
@@ -87,7 +87,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         let result = await window.mainAPI.validateUserData(username, password);
-
+        console.log("result", result);
+        
         if (result === -1){
             validationResult.status = Status.INVALID_USERNAME;
             validationResult.result = result;

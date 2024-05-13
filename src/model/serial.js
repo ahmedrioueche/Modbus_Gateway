@@ -279,7 +279,4 @@ module.exports.usbSendAdminConfigData = usbSendAdminConfigData
 module.exports.usbSendFactoryResetSignal = usbSendFactoryResetSignal
 module.exports.usbStop = usbStop
 
-//TODO
-//fix FREERTOS issue!
-//fix Modbus part
-//update settings window
+

@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron');
 const path = require('path');
-const { getConfigData, usbSendStartSignal, usbSendStopSignal, usbSendAdminConfigData, usbSendFactoryResetSignal, usbStop} = require('./serial.js');
+const serial = require('./model/serial.js');
+const exporter = require('./model/dataExporter.js')
+const user = require('./model/user.js')
 const { usb } = require('usb');
 const { serialport } = require('serialport');
 const fs = require('fs');
@@ -12,14 +14,14 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }   
 
-let isPasswordSet = false;
+let isPasswordSet = true;
 let mainWidth = 800;
 let mainHeight = 900;
 /*---------------main window------------------*/
 let mainWindow; let startPage;
 const createMainWindow = () => {
   if (isPasswordSet)
-    startPage = 'login.html';
+    startPage = 'views/auth/login.html';
   else  
     startPage = "views/main/main.html";
     mainWindow = createWindow(mainWindow, mainWidth, mainHeight, startPage, false, false);
@@ -96,7 +98,7 @@ ipcMain.on('createDiagnosticsWindow', () => {
 ipcMain.on('closeDiagnosticsWindow', () => {
   closeWindow(diagnosticsWindow);
   if(openedDevice)
-    usbStop(openedDevice);
+    serial.usbStop(openedDevice);
 });
 
 /*----------------Packet details window----------------------*/
@@ -203,151 +205,34 @@ function resizeWindow(window) {
 }
 
 /*----------------------------User Data------------------------------*/
-let adminDefaultPassword;
-let manufacturerDefaultPassword;
-let loggedinUsername;
-ipcMain.handle("getUserData", (loggedinUsername) => {
-  return loadUserData(loggedinUsername);
+ipcMain.handle("getUserData", (event, loggedinUsername) => {
+  return user.loadUserData(loggedinUsername);
 });
 
 ipcMain.on("saveUserData", async (event, updatedUserData) => {
-  const hashedPassword = await hashPassword(updatedUserData.admin.password);
+  const hashedPassword = await user.hashPassword(updatedUserData.admin.password);
   updatedUserData.admin.password = hashedPassword;
   userData = updatedUserData;
-  saveUserData(userData);
-});
+  user.saveUserData(userData);
+})
 
 ipcMain.handle("validateUserData", async (event, username, password) => {
-  loggedinUsername = username;
-  userData = await loadUserData(username);
-  if(userData){
-    try {
-      if(userData.username !== username)
-        return -1;
-
-      const result = await bcrypt.compare(password, userData.password);
-      if (!result) {
-        console.log("Password is invalid");
-        return -2;
-
-      } else {  
-          console.log("Password is valid");
-          if(username === process.env.manufacturerDefaultUsername)
-            return 0xCF;
-
-          return 0;
-      }
-    } catch (error) {
-      console.error("Error comparing passwords:", error);
-    }  
-  }
-  else return -1;
-});
-
-async function hashDefaultPass() {
-  adminDefaultPassword = await hashPassword("admin");
-  manufacturerDefaultPassword = await hashPassword(process.env.manufacturerDefaultPassword);
-}
-
-hashDefaultPass().then(() => {
-}).catch(error => {
-  console.error("Error hashing password:", error);
-});
-
-async function loadUserData(username) {
-  try {
-    const data = fs.readFileSync('userData.json');
-    const userData = JSON.parse(data);
-    console.log("username", username)
-    console.log("manifacturerDefaultUsername", process.env.manufacturerDefaultUsername)
-    if (username === process.env.manufacturerDefaultUsername) {
-      return userData.manufacturer || {
-        username: process.env.manifacturerDefaultUsername,
-        password: manufacturerDefaultPassword // Use manufacturer password 
-      };
-    } else {
-      return userData.admin || {
-        username: 'admin',
-        password: adminDefaultPassword // Use defaultPassword 
-      };  
-    }
-  } catch (error) {
-    console.error("Error loading user data:", error);
-    // If an error occurs while loading user data, return default admin credentials
-    return {
-      username: null,
-      password: null 
-    };
-  }
-}
-
-function saveUserData(adminData) {
-  try {
-      // Read existing data from userData.json file
-      let existingData = {};
-      try {
-          existingData = JSON.parse(fs.readFileSync('userData.json'));
-      } catch (error) {
-          // If userData.json doesn't exist or is invalid JSON, just use an empty object
-      }
-
-      // Update the admin part with the new adminData
-      existingData.admin = adminData;
-
-      // Write the updated data back to userData.json file
-      fs.writeFileSync('userData.json', JSON.stringify(existingData));
-      console.log("Admin data saved successfully.");
-  } catch (error) {
-      console.error("Error saving admin data:", error);
-  }
-}
-
-async function hashPassword(password) {
-  const saltRounds = 10; // Number of salt rounds for bcrypt
-  return await bcrypt.hash(password, saltRounds);
-}
+  return user.validateUserData(username, password);
+})
 
 let userDataFileCreated = false;
 app.on('ready', async () => {
   // Create the userData.json file if it hasn't been created yet
   if (!userDataFileCreated) {
-      await createDefaultUserDataFile(); // Await the creation of the file
-      userDataFileCreated = true; // Update the flag to indicate the file has been created
+      await user.createDefaultUserDataFile(); 
+      userDataFileCreated = true; 
   }
 });
 
-// Function to create the userData.json file with default values
-async function createDefaultUserDataFile() {
-  const userDataFilePath = 'userData.json';
-  try {
-      // Await the hashing of default passwords
-      await hashDefaultPass();
-      
-      // Create default user data
-      const defaultUserData = {
-          manufacturer: {
-              username: process.env.manufacturerDefaultUsername,
-              password: manufacturerDefaultPassword
-          },
-          admin: {
-              username: 'admin',
-              password: adminDefaultPassword
-          }
-      };
-      
-      // Write default user data to userData.json file
-      fs.writeFileSync(userDataFilePath, JSON.stringify(defaultUserData));
-      console.log("userData.json created with default values.");
-  } catch (error) {
-      console.error("Error creating userData.json:", error);
-  }
-}
 /*-------------------------------------------------------------------*/
-
 ipcMain.on('getConfigData', (event, configBuffer) => {
-  getConfigData(configBuffer);
+  serial.getConfigData(configBuffer);
 });
-
 
 usb.on('attach', function(device) {
   //send a signal to main to display the device
@@ -380,11 +265,11 @@ ipcMain.on("savePacketData", (event, packet) => {
 ipcMain.handle("getOpenedPacketData", ()=> {return packetData})
 
 ipcMain.on("sendStartSignal", (event, device)=> {
-  usbSendStartSignal(device);
+  serial.usbSendStartSignal(device);
 })
 
 ipcMain.on("sendStopSignal", (event, device)=> {
-  usbSendStopSignal(device);
+  serial.usbSendStopSignal(device);
 })
 
 process.on("data", function(packetBuffer) {
@@ -393,106 +278,20 @@ process.on("data", function(packetBuffer) {
 
 if(diagnosticsWindow){
   diagnosticsWindow.on('closed', () => {
-    usbSendStopSignal(openedDevice);
+    serial.usbSendStopSignal(openedDevice);
   });
 }
 
 ipcMain.on("sendAdminConfigData", (event, configData) => {
-  usbSendAdminConfigData(openedDevice, configData);
+  serial.usbSendAdminConfigData(openedDevice, configData);
 })
 
 ipcMain.on("sendFactoryResetSignal", () => {
-  usbSendFactoryResetSignal(openedDevice);
+  serial.usbSendFactoryResetSignal(openedDevice);
 })
 
 
 /*------------------save window--------------------------*/
-let dialogOpened = false; 
 ipcMain.on("sendPacketsToSave", (event, packets)=>{
-  if(packets.length == 0 || dialogOpened){
-    return;
-  }
-  dialogOpened = true;
-  const currentDateTime = new Date();
-  const formattedDateTime = currentDateTime.toISOString().replace(/[-T:]/g, '-').split('.')[0]; // Format: YYYYMMDDHHmmSS
-  const saveDialog = dialog.showSaveDialog({
-    title: 'Save Packets',
-    defaultPath: `mb_packets_${formattedDateTime}`, 
-    filters: [
-        { name: 'JSON Files', extensions: ['json'] },
-        { name: 'Excel Files', extensions: ['xlsx'] }
-    ],
-    properties: ['createDirectory']
-  });
-
-  // Focus on the dialog window
-  if (saveDialog && saveDialog.browserWindow) {
-      saveDialog.browserWindow.focus();
-  }
-  
-  saveDialog.then(result => {
-      dialogOpened = false;
-      if (!result.canceled) {
-          const filePath = result.filePath;
-          const fileExtension = result.filePath.split('.').pop().toLowerCase();
-          
-          // Check the file extension to determine the file format
-          if (fileExtension === 'json') {
-              // Save packets as JSON
-              writePacketsToJson(packets, filePath)
-                  .then(() => {
-                      console.log('Packets saved as JSON:', filePath);
-                      event.sender.send('save-packets-success');
-                  })
-                  .catch(err => {
-                      console.error('Error saving packets as JSON:', err);
-                      event.sender.send('save-packets-error', err.message);
-                  });
-          } else if (fileExtension === 'xlsx') {
-              // Save packets as Excel
-              writePacketsToExcel(packets, filePath)
-                  .then(() => {
-                      console.log('Packets saved as Excel:', filePath);
-                      event.sender.send('save-packets-success');
-                  })
-                  .catch(err => {
-                      console.error('Error saving packets as Excel:', err);
-                      event.sender.send('save-packets-error', err.message);
-                  });
-          } else {
-              console.error('Unsupported file format:', fileExtension);
-              event.sender.send('save-packets-error', 'Unsupported file format');
-          }
-      }
-  }).catch(err => {
-      console.error('Error showing save dialog:', err);
-      event.sender.send('save-packets-error', err.message);
-  });
-  
+  exporter.exportData(packets);
 });
-
-async function writePacketsToJson(packets, filePath) {
-    await fs.promises.writeFile(filePath, JSON.stringify(packets, null, 2));
-}
-
-async function writePacketsToExcel(packets, filePath) {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Packets');
-
-    // Add headers
-    worksheet.addRow(['Number', 'Time', 'Source', 'Destination', 'Length', 'Info']);
-
-    // Add packet data
-    packets.forEach(packet => {
-        worksheet.addRow([
-            packet.number,
-            packet.time,
-            packet.source,
-            packet.destination,
-            packet.length,
-            packet.info
-        ]);
-    });
-
-    await workbook.xlsx.writeFile(filePath);
-}
