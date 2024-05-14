@@ -56,8 +56,8 @@ contextBridge.exposeInMainWorld('mainAPI', {
 });
 
 contextBridge.exposeInMainWorld('serialAPI', {
-    getConfigData: (configBuffer) =>
-        ipcRenderer.send('getConfigData', configBuffer),
+    sendConfigData: (configBuffer, configDevice) =>
+        ipcRenderer.send('sendConfigData', configBuffer, configDevice),
 
     usbDeviceAttached: (callback) =>
         ipcRenderer.on('usbDeviceAttached', (event, device) => callback(device)),
@@ -65,6 +65,9 @@ contextBridge.exposeInMainWorld('serialAPI', {
     usbDeviceDetached: (callback) =>
         ipcRenderer.on('usbDeviceDetached', (event, device) => callback(device)),
 
+    serialPortsUpdate: (callback) =>
+       ipcRenderer.on('serialPortsUpdate', (event, addedDevices, removedDevices) => callback(addedDevices, removedDevices)),
+ 
     getConnectedDevices: () => 
         ipcRenderer.invoke('getConnectedDevices'),
 

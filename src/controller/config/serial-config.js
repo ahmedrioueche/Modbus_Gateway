@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
-    let deviceId = await getConfigDevice();
+    let deviceId = await getConfigDeviceId();
 
     let selectedMode, baudrate, parity, stopBit, dataSize, slaveId;
     const deviceIndex = storedDevices.findIndex(device => device.id === deviceId);
@@ -82,9 +82,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('devices', JSON.stringify(storedDevices));
     }
 
-    async function getConfigDevice(){
+    async function getConfigDeviceId(){
         const configDevice = await window.serialAPI.getOpenedDevice();
-        const deviceId = `${configDevice.deviceDescriptor.idVendor}-${configDevice.deviceDescriptor.idProduct}`;
+        const deviceId = `${configDevice.vendorId}-${configDevice.productId}`;
         return deviceId;
     }
 

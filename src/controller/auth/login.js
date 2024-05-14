@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let result = await window.mainAPI.validateUserData(username, password);
         console.log("result", result);
-        
+
         if (result === -1){
             validationResult.status = Status.INVALID_USERNAME;
             validationResult.result = result;
@@ -113,5 +113,6 @@ document.addEventListener('DOMContentLoaded', async () => {
          return Status.VALID;
      }
 })
+
 
 

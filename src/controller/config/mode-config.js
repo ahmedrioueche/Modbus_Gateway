@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
-    let deviceId = await getConfigDevice();
+    let deviceId = await getConfigDeviceId();
     const modeElements = document.getElementsByName("mode");
     const existingDeviceIndex = storedDevices.findIndex(device => device.id === deviceId);
     if (existingDeviceIndex !== -1) {
@@ -42,9 +42,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 
-async function getConfigDevice(){
+async function getConfigDeviceId(){
     const configDevice = await window.serialAPI.getOpenedDevice();
-    const deviceId = `${configDevice.deviceDescriptor.idVendor}-${configDevice.deviceDescriptor.idProduct}`;
+    const deviceId = `${configDevice.vendorId}-${configDevice.productId}`;
     return deviceId;
 }
 

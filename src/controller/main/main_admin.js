@@ -4,19 +4,40 @@ document.addEventListener('DOMContentLoaded', () => {
     window.onload = getListConnectedDevices();
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
 
-    window.serialAPI.usbDeviceAttached(usbDevice => {
-        console.log("usb deviced attached", usbDevice)
-        if(isDeviceMyDevice(usbDevice)){
-            createUsbDeviceUI(usbDevice);
-        }
-    });
+    
+    window.serialAPI.serialPortsUpdate((addedDevices, removedDevices) => {
 
-    window.serialAPI.usbDeviceDetached(usbDevice => {
-        if(isDeviceMyDevice(usbDevice)){
-            const deviceId = `${usbDevice.deviceDescriptor.idVendor}-${usbDevice.deviceDescriptor.idProduct}`;
+        removedDevices.forEach(device => {
+            const deviceId = `${device.vendorId}-${device.productId}`;
             removeUsbDeviceUI(deviceId);
-        }
-    });
+        });
+        getListConnectedDevices(addedDevices);
+    })
+
+    function listConnectedDevices(connectedDevices){
+        console.log("connectedDevices", connectedDevices)
+        connectedDevices.forEach(usbDevice => {
+            const deviceId = `${usbDevice.vendorId}-${usbDevice.productId}`;
+            if(isDeviceMyDevice(usbDevice) && !isDeviceListed(deviceId)){   
+                createUsbDeviceUI(usbDevice);
+            }
+        });
+    }
+
+    async function getListConnectedDevices(){
+        const connectedDevices = await window.serialAPI.getConnectedDevices();
+        listConnectedDevices(connectedDevices);
+    }
+    
+    function isDeviceMyDevice(usbDevice){
+        //return true;
+        return usbDevice.deviceDescriptor.idVendor === GATEWAY_ID;
+    }
+
+    function isDeviceListed(deviceId){
+        return document.getElementById(deviceId) !== null;
+    }
+
     
     const configureButton = document.getElementById("configure-button");
     const diagnoseButton = document.getElementById("diagnose-button");
@@ -104,26 +125,4 @@ document.addEventListener('DOMContentLoaded', () => {
     })
 
 
-    async function getListConnectedDevices(){
-        const connectedDevices = await window.serialAPI.getConnectedDevices();
-        listConnectedDevices(connectedDevices);
-    }
-
-    function listConnectedDevices(connectedDevices){
-        connectedDevices.forEach(usbDevice => {
-            const deviceId = `${usbDevice.deviceDescriptor.idVendor}-${usbDevice.deviceDescriptor.idProduct}`;
-            if(isDeviceMyDevice(usbDevice) && !isDeviceListed(deviceId)){
-                createUsbDeviceUI(usbDevice);
-            }
-        });
-    }
-    
-    function isDeviceMyDevice(usbDevice){
-        //return true;
-        return usbDevice.deviceDescriptor.idVendor === GATEWAY_ID;
-    }
-
-    function isDeviceListed(deviceId){
-        return document.getElementById(deviceId) !== null;
-    }
 })

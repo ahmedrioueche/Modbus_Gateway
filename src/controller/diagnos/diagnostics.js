@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const device = await window.serialAPI.getOpenedDevice();
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
     storedDevices.forEach(storedDevice => {
-        const deviceId = `${device.deviceDescriptor.idVendor}-${device.deviceDescriptor.idProduct}`;
+        const deviceId = `${storedDevice.vendorId}-${storedDevice.productId}`;
         if(storedDevice.id === deviceId){
             networkIP = storedDevice.networkIP;
             remoteIP = storedDevice.remoteIP;
@@ -308,6 +308,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const stopButtonEl = document.getElementById("stop");
 
     function startButtonClickHandler() {
+        console.log("device", device)
         window.serialAPI.sendStartSignal(device);
     
         startButtonEl.classList.add("play-button-disabled");

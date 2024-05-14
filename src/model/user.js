@@ -6,7 +6,6 @@ let manufacturerDefaultPassword;
 let loggedinUsername;
 
 async function validateUserData(username, password){
-    console.log("validateUserData")
   loggedinUsername = username;
   userData = await loadUserData(username);
   if(userData){
@@ -32,17 +31,6 @@ async function validateUserData(username, password){
   }
   else return -1;
 }
-
-
-async function hashDefaultPass() {
-  adminDefaultPassword = await hashPassword("admin");
-  manufacturerDefaultPassword = await hashPassword(process.env.manufacturerDefaultPassword);
-}
-
-hashDefaultPass().then(() => {
-}).catch(error => {
-  console.error("Error hashing password:", error);
-});
 
 async function loadUserData(username) {
   try {
@@ -92,12 +80,6 @@ function saveUserData(adminData) {
   }
 }
 
-async function hashPassword(password) {
-  const saltRounds = 10; // Number of salt rounds for bcrypt
-  return await bcrypt.hash(password, saltRounds);
-}
-
-
 // Function to create the userData.json file with default values
 async function createDefaultUserDataFile() {
   const userDataFilePath = 'userData.json';
@@ -124,6 +106,22 @@ async function createDefaultUserDataFile() {
       console.error("Error creating userData.json:", error);
   }
 }
+
+async function hashPassword(password) {
+  const saltRounds = 10; // Number of salt rounds for bcrypt
+  return await bcrypt.hash(password, saltRounds);
+}
+
+async function hashDefaultPass() {
+  adminDefaultPassword = await hashPassword("admin");
+  manufacturerDefaultPassword = await hashPassword(process.env.manufacturerDefaultPassword);
+}
+
+hashDefaultPass().then(() => {
+}).catch(error => {
+  console.error("Error hashing password:", error);
+});
+
 
 module.exports.validateUserData = validateUserData;
 module.exports.loadUserData = loadUserData;

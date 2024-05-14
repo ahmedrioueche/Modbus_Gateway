@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    let configDevice;
 
     document.querySelectorAll('.input-item').forEach(inputItem => {
         const errorDiv = inputItem.querySelector(".error");
@@ -8,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let selectedMode, networkIP, networkMask, networkGateway, remoteIP;
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
-    let deviceId = await getConfigDevice();
+    let deviceId = await getConfigDeviceId();
     const deviceIndex = storedDevices.findIndex(device => device.id === deviceId);
     if (deviceIndex !== -1) {
         selectedMode = storedDevices[deviceIndex].mode;
@@ -73,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (selectedMode == "RTU Server Mode") 
           configBuffer.push(storedDevices[deviceIndex].remoteIP);
 
-        window.serialAPI.getConfigData(configBuffer);
+        window.serialAPI.sendConfigData(configBuffer, configDevice);
     }
 
     function saveNetworkData(){
@@ -124,10 +125,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         return dataValid;
     }
-
-    async function getConfigDevice(){
-        const configDevice = await window.serialAPI.getOpenedDevice();
-        const deviceId = `${configDevice.deviceDescriptor.idVendor}-${configDevice.deviceDescriptor.idProduct}`;
+    async function getConfigDeviceId(){
+        configDevice = await window.serialAPI.getOpenedDevice();
+        const deviceId = `${configDevice.vendorId}-${configDevice.productId}`;
         return deviceId;
     }
 

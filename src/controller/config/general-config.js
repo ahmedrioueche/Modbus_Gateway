@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", async ()=> {
 
     async function getConfigDeviceId(){
         const configDevice = await window.serialAPI.getOpenedDevice();
-        const deviceId = `${configDevice.deviceDescriptor.idVendor}-${configDevice.deviceDescriptor.idProduct}`;
+        const deviceId = `${configDevice.vendorId}-${configDevice.productId}`;
         return deviceId;
     }
 

@@ -1,30 +1,51 @@
 document.addEventListener('DOMContentLoaded', () => {   
     const GATEWAY_ID = 0XDFA5;  //USB VENDOR ID
-
+    let listedDevices = [];
     window.onload = getListConnectedDevices();
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
 
-    window.serialAPI.usbDeviceAttached(usbDevice => {
-        console.log("usb deviced attached", usbDevice)
-        if(isDeviceMyDevice(usbDevice)){
-            createUsbDeviceUI(usbDevice);
-        }
-    });
+    window.serialAPI.serialPortsUpdate((connectedDevices, removedDevices) => {
 
-    window.serialAPI.usbDeviceDetached(usbDevice => {
-        if(isDeviceMyDevice(usbDevice)){
-            const deviceId = `${usbDevice.deviceDescriptor.idVendor}-${usbDevice.deviceDescriptor.idProduct}`;
+        removedDevices.forEach(device => {
+            const deviceId = `${device.vendorId}-${device.productId}`;
             removeUsbDeviceUI(deviceId);
-        }
-    });
+        });
+        
+        listConnectedDevices(connectedDevices);
+    })
+
+    function listConnectedDevices(connectedDevices){
+        console.log("connectedDevices", connectedDevices)
+        connectedDevices.forEach(usbDevice => {
+            const deviceId = `${usbDevice.vendorId}-${usbDevice.productId}`;
+            if(isDeviceMyDevice(usbDevice) && !isDeviceListed(deviceId)){   
+                createUsbDeviceUI(usbDevice);
+            }
+        });
+    }
+
+    async function getListConnectedDevices(){
+        const connectedDevices = await window.serialAPI.getConnectedDevices();
+        listConnectedDevices(connectedDevices);
+    }
+    
+    function isDeviceMyDevice(usbDevice){
+        return true;
+       // return usbDevice.deviceDescriptor.idVendor === GATEWAY_ID;
+    }
+
+    function isDeviceListed(deviceId){
+        return document.getElementById(deviceId) !== null;
+    }
+
     
     const configureButton = document.getElementById("configure-button");
     const diagnoseButton = document.getElementById("diagnose-button");
     
     let selectedDevice;
     function createUsbDeviceUI(usbDevice){
-       const deviceId = `${usbDevice.deviceDescriptor.idVendor}-${usbDevice.deviceDescriptor.idProduct}`;
-
+        const deviceId = `${usbDevice.vendorId}-${usbDevice.productId}`;
+        listedDevices.push(deviceId);
         const deviceDetailsContainer = document.getElementById('device-container');
         const deviceDetails = document.createElement("div");
         deviceDetails.setAttribute("class", "device-row");
@@ -77,9 +98,14 @@ document.addEventListener('DOMContentLoaded', () => {
            deviceDetails.remove();
     }
 
+    function clearDevicesUI(){
+        const deviceDetailsContainer = document.getElementById('device-container');
+        deviceDetailsContainer.innerHTML = "";
+    }
+
     configureButton.addEventListener("click", () => {
         window.mainAPI.createConfigWindow(false); //not admin config
-        window.serialAPI.saveOpenedDevice(selectedDevice); //save the device thats being configured
+        window.serialAPI.saveOpenedDevice(selectedDevice); //save the device that's opened for configuration
     });
     
     diagnoseButton.addEventListener("click", () => {
@@ -101,27 +127,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("settings-button").addEventListener("click", () => {
         window.mainAPI.createSettingsWindow();
     })
-
-    function listConnectedDevices(connectedDevices){
-        connectedDevices.forEach(usbDevice => {
-            const deviceId = `${usbDevice.deviceDescriptor.idVendor}-${usbDevice.deviceDescriptor.idProduct}`;
-            if(isDeviceMyDevice(usbDevice) && !isDeviceListed(deviceId)){
-                createUsbDeviceUI(usbDevice);
-            }
-        });
-    }
-
-    async function getListConnectedDevices(){
-        const connectedDevices = await window.serialAPI.getConnectedDevices();
-        listConnectedDevices(connectedDevices);
-    }
-    
-    function isDeviceMyDevice(usbDevice){
-        return true;
-       // return usbDevice.deviceDescriptor.idVendor === GATEWAY_ID;
-    }
-
-    function isDeviceListed(deviceId){
-        return document.getElementById(deviceId) !== null;
-    }
 });
