@@ -58,11 +58,11 @@ document.addEventListener("DOMContentLoaded", async ()=> {
     });
     
     document.getElementById("cancel-button").addEventListener("click", () => {
-        window.mainAPI.closeConfigWindow();
+        window.mainAPI.closeWindow(1); //config window index = 1
     })
     
     document.getElementById("factory-reset-button").addEventListener("click", () => {
         //open factory reset dialog window
-        window.mainAPI.createConfigDialogWindow();
+        window.mainAPI.openWindow(2); //factory reset window index = 2
     })
 });

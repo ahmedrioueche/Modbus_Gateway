@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let validationResult = await validateUserInfo(username, password);
 
         if(validationResult.status === Status.VALID){
+            console.log("validationResult", validationResult)
             if(validationResult.result === 0xCF){
                 window.location.href = "../../views/main/main_admin.html"; 
             }
@@ -87,6 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         let result = await window.mainAPI.validateUserData(username, password);
+
         console.log("result", result);
 
         if (result === -1){
@@ -100,7 +102,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             validationResult.result = result;
             return validationResult;
         }
-
+        
+        if(result === 0xCF){
+            validationResult.result = result;
+            return validationResult;
+        }
         return validationResult;
     }
 

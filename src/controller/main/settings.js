@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     document.getElementById("cancel-button").addEventListener('click', () => {
-        window.mainAPI.closeSettingsWindow();
+        window.mainAPI.closeWindow(5); //settings window index = 5
     });
 });
 

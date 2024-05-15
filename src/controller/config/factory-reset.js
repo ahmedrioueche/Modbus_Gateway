@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", async ()=> {
     }
 
     document.getElementById("cancel-button").addEventListener("click", () => {
-        window.mainAPI.closeConfigDialogWindow();
+        window.mainAPI.closeWindow(2); //factory reset window index = 2
     })
 })
  

@@ -30,8 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function isDeviceMyDevice(usbDevice){
-        //return true;
-        return usbDevice.deviceDescriptor.idVendor === GATEWAY_ID;
+            return true;
+        //return usbDevice.vendorId === GATEWAY_ID;
     }
 
     function isDeviceListed(deviceId){
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let selectedDevice;
     function createUsbDeviceUI(usbDevice){
-       const deviceId = `${usbDevice.deviceDescriptor.idVendor}-${usbDevice.deviceDescriptor.idProduct}`;
+       const deviceId = `${usbDevice.vendorId}-${usbDevice.productId}`;
 
         const deviceDetailsContainer = document.getElementById('device-container');
         const deviceDetails = document.createElement("div");

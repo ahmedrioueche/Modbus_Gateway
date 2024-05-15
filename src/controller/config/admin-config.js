@@ -32,10 +32,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     //get stored devices
     let storedDevices = JSON.parse(localStorage.getItem('devices')) || [];
     const existingDeviceIndex = storedDevices.findIndex(device => device.id === deviceId);
+    const storedMacAddress = storedDevices[existingDeviceIndex].macAddress;
     if (existingDeviceIndex !== -1) {
         console.log("storedDevices[existingDeviceIndex].macAddress", storedDevices[existingDeviceIndex].macAddress)
-
-        macAddressInput.value = formatAddress(storedDevices[existingDeviceIndex].macAddress);
+        if(storedMacAddress)
+            macAddressInput.value = formatAddress(storedDevices[existingDeviceIndex].macAddress);
         deviceNameEl.value = storedDevices[existingDeviceIndex].name; 
     } 
     else {
@@ -119,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function getConfigDeviceId(){
         const configDevice = await window.serialAPI.getOpenedDevice();
-        const deviceId = `${configDevice.deviceDescriptor.idVendor}-${configDevice.deviceDescriptor.idProduct}`;
+        const deviceId = `${configDevice.vendorId}-${configDevice.productId}`;
         return deviceId;
     }
 
@@ -128,6 +129,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     document.getElementById("cancel-button").addEventListener("click", () => {
-        window.mainAPI.closeConfigWindow();
+        window.mainAPI.closeWindow(1); //config window index = 1
     })
 })

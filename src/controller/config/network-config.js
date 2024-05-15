@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(checkNetworkData()){
             saveNetworkData();
             sendConfigData();
-            window.mainAPI.closeConfigWindow();
+            window.mainAPI.closeWindow(1); //config window index = 1
         }
     });
 

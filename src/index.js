@@ -45,82 +45,81 @@ ipcMain.on('closeMainWindow', () => {
   closeMainWindow();
 });
 
-/*---------------search window------------------*/
-let searchWindow;
-let sideWidth = 450;
-let sideHeight = 285
+/*--------------Window factory------------------*/
+let configWindow, factoryResetWindow, diagnosticsWindow, packetWindow, settingsWindow, helpWindow;
+ipcMain.on("openWindow", (event, windowIndex, param) => {
+  console.log("open the fucking window");
+  console.log("windowIndex", windowIndex);
+  console.log("param", param);
 
-ipcMain.on('createSearchWindow', () => {
-  searchWindow = createWindow(searchWindow, sideWidth, sideHeight, 'views/main/search.html', false, false)
-});
-ipcMain.on('closeSearchWindow', () => {
-  closeWindow(searchWindow);
-});
+  let file;
+  switch(windowIndex){
+    case 1:
+      if(param)
+        file = 'views/config/admin-config.html';
+      else
+        file = 'views/config/general-config.html'
 
-/*---------------configuration window------------------*/
-let configWindow;
-function createConfigWindow(isAdmin) { //is it user config or admin config
-  console.log("isAdmin", isAdmin)
-  if(isAdmin)
-    configWindow = createWindow(configWindow, mainWidth, mainHeight, 'views/config/admin-config.html', false, false)
-  else
-    configWindow = createWindow(configWindow, mainWidth, mainHeight, 'views/config/general-config.html', false, false)
-}
+      configWindow = createWindow(configWindow, mainWidth, mainHeight, file, false, false);
+      break;
 
-ipcMain.on('createConfigWindow', (event, isAdmin) => {
-  createConfigWindow(isAdmin);
-});
+    case 2:
+      file = 'views/config/factory-reset.html';
+      factoryResetWindow = createWindow(factoryResetWindow, 500, 200, file, false, false);
+    break;
 
-ipcMain.on('closeConfigWindow', () => {
-  closeWindow(configWindow);
-});
+    case 3:
+      file = 'views/diagnos/diagnostics.html';
+      diagnosticsWindow = createWindow(diagnosticsWindow, mainWidth, mainHeight, file, false, false);
+    break;
 
-/*--------------settings window---------------------- */
-let settingsWindow;
+    case 4:
+      file = 'views/diagnos/packetDetails.html';
+      packetWindow = createWindow(packetWindow, 500, 650, file, false, false);
+    break;
 
-ipcMain.on('createSettingsWindow', () => {
-  settingsWindow = createWindow(settingsWindow, sideWidth, sideHeight + 360, 'views/main/settings.html', false, false)
-});
-ipcMain.on('closeSettingsWindow', () => {
-  closeWindow(settingsWindow);
-});
+    case 5:
+      file = 'views/main/settings.html';
+      settingsWindow = createWindow(settingsWindow, 450, 650, file, false, false);
+    break;
 
-/*----------------Diagnostics window----------------------*/
-let diagnosticsWindow;
-
-ipcMain.on('createDiagnosticsWindow', () => {
-  diagnosticsWindow = createWindow(diagnosticsWindow, mainWidth, mainHeight, 'views/diagnos/diagnostics.html', false, true)
-});
-
-ipcMain.on('closeDiagnosticsWindow', () => {
-  closeWindow(diagnosticsWindow);
-  if(openedDevice)
-    serial.usbStop(openedDevice);
-});
-
-/*----------------Packet details window----------------------*/
-let packetDetailsWindow;
-
-function closePacketDetailsWindow() {
-  closeWindow(packetDetailsWindow);
-}
-ipcMain.on('createPacketDetailsWindow', () => {
-  closePacketDetailsWindow(packetDetailsWindow);
-  packetDetailsWindow = createWindow(packetDetailsWindow, 500, 650, 'views/diagnos/packetDetails.html', false, true)
-});
-
-ipcMain.on('closePacketDetailsWindow', () => {
-  closePacketDetailsWindow();
-});
-
-/*-------------------------config dialog window--------------------------------*/
-let configDialogWindow;
-ipcMain.on("createConfigDialogWindow", () => {
-  configDialogWindow = createWindow(configDialogWindow, 500, 200, "views/config/factory-reset.html",false, false);
+    case 6:
+    break;
+  }
 })
 
-ipcMain.on("closeConfigDialogWindow", () => {
-  closeWindow(configDialogWindow);
+ipcMain.on("closeWindow", (event, windowIndex, param) => {
+  console.log("close the fucking window");
+  console.log("windowIndex", windowIndex);
+  console.log("param", param);
+
+  switch(windowIndex){
+    case 0:
+      app.quit();
+      break;
+    case 1:
+      closeWindow(configWindow)
+      break;
+
+    case 2:
+      closeWindow(factoryResetWindow);
+    break;
+
+    case 3:
+      closeWindow(diagnosticsWindow);
+    break;
+
+    case 4:
+      closeWindow(packetWindow);
+    break;
+
+    case 5:
+      closeWindow(settingsWindow);
+    break;
+
+    case 6:
+    break;
+  }
 })
 
 /*----------------------------------------------------------------------------*/
@@ -141,7 +140,7 @@ function createWindow(window, width, height, htmlFile, resizable, allowDuplicate
 
     window.loadFile(path.join(__dirname, htmlFile));
 
-    window.webContents.openDevTools();
+    //window.webContents.openDevTools();
 
     window.on('will-resize', () => {
       resizeHandler(window, width, height, resizable);
@@ -165,26 +164,6 @@ function createWindow(window, width, height, htmlFile, resizable, allowDuplicate
   return window;
 }
 
-function resizeHandler(window, winWidth, winHeight, disableResize) {
-  const { width } = window.getBounds();
-  const { height } = window.getBounds();
-
-  const minWidth = winWidth;
-  const minHeight = winHeight;
-
-  if (disableResize) {
-    window.setSize(winWidth, winHeight, true);
-  }
-  else {
-    if (width < minWidth) {
-      window.setSize(minWidth, window.getBounds().height, true);
-    }
-    if (height < minHeight) {
-      window.setSize(window.getBounds().width, minHeight, true);
-    }
-  }
-}
-
 function closeWindow(window) {
   try {
     if (window) {
@@ -198,15 +177,12 @@ function closeWindow(window) {
   
 }
 
-function resizeWindow(window) {
-  window.setSize(sideWidth, window.getBounds().height - 25, true);
-}
-
 /*----------------------------User Data------------------------------*/
 ipcMain.handle("getUserData", (event, loggedinUsername) => {
   return user.loadUserData(loggedinUsername);
 });
 
+let userData;
 ipcMain.on("saveUserData", async (event, updatedUserData) => {
   const hashedPassword = await user.hashPassword(updatedUserData.admin.password);
   updatedUserData.admin.password = hashedPassword;
@@ -218,11 +194,12 @@ ipcMain.handle("validateUserData", async (event, username, password) => {
   return user.validateUserData(username, password);
 })
 
+
 let userDataFileCreated = false;
 app.on('ready', async () => {
   // Create the userData.json file if it hasn't been created yet
   if (!userDataFileCreated) {
-      await user.createDefaultUserDataFile(); 
+      await user.createDefaultUserData(); 
       userDataFileCreated = true; 
   }
 });
@@ -286,7 +263,6 @@ ipcMain.on("sendAdminConfigData", (event, configData) => {
 ipcMain.on("sendFactoryResetSignal", () => {
   serial.usbSendFactoryResetSignal(openedDevice);
 })
-
 
 /*------------------save window--------------------------*/
 ipcMain.on("sendPacketsToSave", (event, packets)=>{

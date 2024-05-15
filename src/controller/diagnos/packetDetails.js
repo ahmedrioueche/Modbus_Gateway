@@ -91,6 +91,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     document.getElementById("close-button").addEventListener("click", ()=> {
-        window.mainAPI.closePacketDetailsWindow();
+        window.mainAPI.closeWindow(4); //window index = 4
     })
 })

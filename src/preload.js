@@ -2,6 +2,12 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('mainAPI', {
 
+    openWindow: (windowIndex, param = null) => 
+        ipcRenderer.send('openWindow', windowIndex, param),
+
+    closeWindow: (windowIndex, param = null) => 
+        ipcRenderer.send('closeWindow', windowIndex, param),
+
     getUserData: () => 
         ipcRenderer.invoke("getUserData"),
 
@@ -10,48 +16,6 @@ contextBridge.exposeInMainWorld('mainAPI', {
 
     validateUserData: (username, password) => 
         ipcRenderer.invoke("validateUserData", username, password),
-
-    createSearchWindow: () => 
-        ipcRenderer.send('createSearchWindow'),
-
-    createConfigWindow: (isAdmin) => 
-        ipcRenderer.send('createConfigWindow', isAdmin),
-        
-    closeMainWindow: () => 
-        ipcRenderer.send('closeMainWindow'),
-
-    closeConfigWindow: () => 
-        ipcRenderer.send('closeConfigWindow'),
-
-    closeSearchWindow: () => 
-        ipcRenderer.send('closeSearchWindow'),
-
-    resizeWindow: () => 
-        ipcRenderer.send('resizeWindow'),
-
-    createSettingsWindow: () => 
-        ipcRenderer.send('createSettingsWindow'),
-
-    closeSettingsWindow: () => 
-        ipcRenderer.send('closeSettingsWindow'),
-
-    createDiagnosticsWindow: () => 
-        ipcRenderer.send('createDiagnosticsWindow'),
-
-    closeDiagnosticsWindow: () => 
-        ipcRenderer.send('closeDiagnosticsWindow'),
-
-    createPacketDetailsWindow: () => 
-        ipcRenderer.send('createPacketDetailsWindow'),
-
-    closePacketDetailsWindow: () => 
-        ipcRenderer.send('closePacketDetailsWindow'),
-
-    createConfigDialogWindow: () => 
-        ipcRenderer.send('createConfigDialogWindow'),
-    
-    closeConfigDialogWindow: () => 
-        ipcRenderer.send('closeConfigDialogWindow'),
 
 });
 

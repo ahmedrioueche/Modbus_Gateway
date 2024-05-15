@@ -358,7 +358,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     })
 
     document.getElementById("close-button").addEventListener("click", ()=> {
-        window.mainAPI.closeDiagnosticsWindow();
+        window.mainAPI.closeWindow(3); //window index = 3
     })
 });
 

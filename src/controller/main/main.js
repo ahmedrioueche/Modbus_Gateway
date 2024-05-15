@@ -98,20 +98,18 @@ document.addEventListener('DOMContentLoaded', () => {
            deviceDetails.remove();
     }
 
-    function clearDevicesUI(){
-        const deviceDetailsContainer = document.getElementById('device-container');
-        deviceDetailsContainer.innerHTML = "";
-    }
-
     configureButton.addEventListener("click", () => {
-        window.mainAPI.createConfigWindow(false); //not admin config
+        window.mainAPI.openWindow(1, false); //config window index = 3 //not admin config = false
         window.serialAPI.saveOpenedDevice(selectedDevice); //save the device that's opened for configuration
     });
     
     diagnoseButton.addEventListener("click", () => {
-        window.mainAPI.createDiagnosticsWindow();
-        console.log("selectedDevice", selectedDevice)
+        window.mainAPI.openWindow(3); //diagnose window index = 3
         window.serialAPI.saveOpenedDevice(selectedDevice); //save the device thats being diagnosed
+    })
+
+    document.getElementById("settings-button").addEventListener("click", () => {
+        window.mainAPI.openWindow(5); //settings window index = 5
     })
 
     document.getElementById("refresh-button").addEventListener("click", async () => {
@@ -121,10 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
     })
 
     document.getElementById("exit-button").addEventListener("click", () => {
-        window.mainAPI.closeMainWindow();
+        window.mainAPI.closeWindow(0); //main window index = 0
     })
 
-    document.getElementById("settings-button").addEventListener("click", () => {
-        window.mainAPI.createSettingsWindow();
-    })
+  
 });

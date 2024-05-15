@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(result === status.VALID){
             saveAdminData(configData);
             sendAdminData(configData); //send admin config data via usb
-            window.mainAPI.closeConfigWindow();
+            window.mainAPI.closeWindow(1); //config window index = 1
         }
     });
 
@@ -107,10 +107,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           
         localStorage.setItem('devices', JSON.stringify(storedDevices));
     }
-
+    
     async function getConfigDeviceId(){
         const configDevice = await window.serialAPI.getOpenedDevice();
-        const deviceId = `${configDevice.deviceDescriptor.idVendor}-${configDevice.deviceDescriptor.idProduct}`;
+        const deviceId = `${configDevice.vendorId}-${configDevice.productId}`;
         return deviceId;
     }
 
